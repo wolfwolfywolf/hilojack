@@ -34,7 +34,7 @@ export default async function ScheduleAdmin({ searchParams }: { searchParams: Se
                     <td className="num">{ms.length}</td>
                     <td className="num">{scored === seats.length && seats.length > 0 ? "✓ all" : `${scored}/${seats.length}`}</td>
                     <td className="num">{subs || ""}</td>
-                    <td><Link href={`/admin/week/${w.week_no}`}>Edit matchups, subs &amp; scores</Link></td>
+                    <td><Link href={`/admin/week/${w.week_no}/scores`}>Enter scores</Link> · <Link href={`/admin/week/${w.week_no}`}>Edit week</Link></td>
                   </tr>
                 );
               })}

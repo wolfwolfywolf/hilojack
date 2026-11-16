@@ -39,7 +39,7 @@ export default async function StandingsPage() {
         <div className="card muted">No players yet. A league manager can add them on the admin pages.</div>
       ) : (
         <div className="table-scroll card" style={{ padding: 0 }}>
-          <table>
+          <table className="standings">
             <thead>
               <tr>
                 <th className="num">#</th>
@@ -47,7 +47,7 @@ export default async function StandingsPage() {
                 <th className="num">Total</th>
                 <th className="num">Wks</th>
                 <th className="num">Avg</th>
-                <th className="num">High</th>
+                <th className="num hide-sm">High</th>
               </tr>
             </thead>
             <tbody>
@@ -60,7 +60,7 @@ export default async function StandingsPage() {
                   <td className="num"><strong>{r.total}</strong></td>
                   <td className="num">{r.weeksPlayed}</td>
                   <td className="num">{fmtAvg(r.average)}</td>
-                  <td className="num">{r.high ?? "–"}</td>
+                  <td className="num hide-sm">{r.high ?? "–"}</td>
                 </tr>
               ))}
             </tbody>
@@ -80,7 +80,7 @@ export default async function StandingsPage() {
               <MatchCard key={m.id} match={m} byId={byId} highSides={high?.matchSides} />
             ))}
           </div>
-          <p><Link href={`/week/${cw}`}>Week {cw} details</Link> · <Link href="/schedule">Full schedule</Link></p>
+          <p><Link href="/schedule">Full schedule</Link></p>
         </section>
       )}
 

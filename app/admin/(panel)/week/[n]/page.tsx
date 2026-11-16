@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getLeague } from "@/lib/league";
 import { addMatch, deleteMatch, saveWeek } from "@/lib/actions";
 import { displayName } from "@/lib/standings";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { Flash, one, type SearchParams } from "@/components/Flash";
 
 export default async function WeekAdmin({
@@ -45,6 +46,7 @@ export default async function WeekAdmin({
         (both partners get the same points). Then press Save. Leave points blank until the match is played.
         Use +/− for one player only, such as a no-show (−2, partner +3) or leaving early.
       </p>
+      <p><Link href={`/admin/week/${n}/scores`} className="btn">Enter scores one table at a time</Link></p>
       <Flash msg={one(sp.msg)} err={one(sp.err)} />
       {doubled.length > 0 && <p className="warn">Scheduled more than once: {doubled.join(", ")}</p>}
       {missing.length > 0 && <p className="warn">Not scheduled this week: {missing.join(", ")}</p>}
@@ -68,16 +70,16 @@ export default async function WeekAdmin({
               <input type="hidden" name="match_id" value={m.id} />
               <div className="row" style={{ justifyContent: "space-between", marginBottom: 6 }}>
                 <strong>Table {m.table_no}</strong>
-                <button
+                <ConfirmButton
                   type="submit"
                   formAction={deleteMatch}
                   name="delete_match_id"
                   value={m.id}
                   className="link small"
-                  title="Remove this table"
+                  message={`Remove table ${m.table_no} and its scores from week ${n}?`}
                 >
-                  Remove
-                </button>
+                  Remove table
+                </ConfirmButton>
               </div>
               <div className="cols"><span /><span>Player</span><span>Sub</span><span>Pair pts</span><span title="Penalty or other adjustment for this player only">+/−</span></div>
               {m.slots.map((s, i) => {
@@ -87,18 +89,20 @@ export default async function WeekAdmin({
                     {i === 2 && <hr />}
                     <div className="slot">
                       <span className="pos">{pos}</span>
-                      <select name={`player_${m.id}_${pos}`} defaultValue={s.player_id ?? ""} aria-label={`Table ${m.table_no} ${pos} player`}>
+                      <select className="s-player" name={`player_${m.id}_${pos}`} defaultValue={s.player_id ?? ""} aria-label={`Table ${m.table_no} ${pos} player`}>
                         <option value="">—</option>
                         {regulars.map((p) => (
                           <option key={p.id} value={p.id}>{displayName(p)}{p.active ? "" : " (inactive)"}</option>
                         ))}
                       </select>
-                      <select name={`sub_${m.id}_${pos}`} defaultValue={s.sub_id ?? ""} aria-label={`Table ${m.table_no} ${pos} sub`}>
+                      <select className="s-sub" name={`sub_${m.id}_${pos}`} defaultValue={s.sub_id ?? ""} aria-label={`Table ${m.table_no} ${pos} sub`}>
                         <option value="">No sub</option>
                         {subs.map((p) => <option key={p.id} value={p.id}>{displayName(p)}</option>)}
                       </select>
                       {s.seat === 1 ? (
                         <input
+                          className="s-pts"
+                          placeholder="pts"
                           name={`score_${m.id}_${s.side}`}
                           defaultValue={s.score ?? ""}
                           inputMode="numeric"
@@ -106,14 +110,15 @@ export default async function WeekAdmin({
                           aria-label={`Table ${m.table_no} side ${s.side} pair points`}
                         />
                       ) : (
-                        <span />
+                        <span className="s-pts" />
                       )}
                       <input
+                        className="s-adj"
                         name={`adjust_${m.id}_${pos}`}
                         defaultValue={s.adjust ?? ""}
                         inputMode="numeric"
                         pattern="-?[0-9]*"
-                        placeholder="0"
+                        placeholder="+/−"
                         aria-label={`Table ${m.table_no} ${pos} adjustment`}
                       />
                     </div>

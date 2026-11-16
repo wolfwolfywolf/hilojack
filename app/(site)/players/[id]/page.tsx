@@ -44,27 +44,25 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         )}
       </div>
       <div className="table-scroll card" style={{ padding: 0 }}>
-        <table>
+        <table className="stack-sm">
           <thead>
             <tr>
               <th className="num">Wk</th>
               <th>Date</th>
-              <th>Table</th>
               <th>Partner</th>
               <th>Opponents</th>
-              <th className="num">Score</th>
+              <th className="num">Points</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) =>
               r.m ? (
                 <tr key={r.w.week_no}>
-                  <td className="num"><Link href={`/week/${r.w.week_no}`}>{r.w.week_no}</Link></td>
-                  <td>{fmtDate(r.w.play_date, { short: true })}</td>
-                  <td>{r.m.table_no}</td>
-                  <td>{who(r.partner!)}</td>
-                  <td>{who(r.opps![0])} &amp; {who(r.opps![1])}</td>
-                  <td className="num">
+                  <td className="num" data-label="Week"><Link href={`/schedule?week=${r.w.week_no}`}>{r.w.week_no}</Link></td>
+                  <td data-label="Date">{fmtDate(r.w.play_date, { short: true })}</td>
+                  <td data-label="Partner">{who(r.partner!)}</td>
+                  <td data-label="Against">{who(r.opps![0])} &amp; {who(r.opps![1])}</td>
+                  <td className="num" data-label="Points">
                     {r.subbing
                       ? <span title="Played as a sub">{r.me!.score ?? "–"}*</span>
                       : r.me!.sub_id != null
@@ -76,9 +74,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                 </tr>
               ) : (
                 <tr key={r.w.week_no}>
-                  <td className="num">{r.w.week_no}</td>
-                  <td>{fmtDate(r.w.play_date, { short: true })}</td>
-                  <td colSpan={4} className="muted">Not scheduled</td>
+                  <td className="num" data-label="Week">{r.w.week_no}</td>
+                  <td data-label="Date">{fmtDate(r.w.play_date, { short: true })}</td>
+                  <td colSpan={3} className="muted" data-label="">Not scheduled</td>
                 </tr>
               ),
             )}
@@ -86,7 +84,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         </table>
       </div>
       <p className="small muted">
-        <Link href={`/schedule?player=${id}`}>Show on the schedule</Link>
+        <Link href="/schedule">This week&apos;s schedule</Link>
       </p>
     </div>
   );
