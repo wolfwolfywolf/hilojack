@@ -30,7 +30,7 @@ function client(): Sql {
       // Supabase's transaction pooler does not support prepared statements.
       prepare: false,
       max: 5,
-      idle_timeout: 20,
+      idle_timeout: 60,
       onnotice: () => {},
     });
   }

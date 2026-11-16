@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { db } from "./db";
 import type { MatchRow, OffDate, Player, Settings, Slot, WeekInfo } from "./types";
 
@@ -9,7 +10,7 @@ const SLOT_ORDER: [Slot["side"], Slot["seat"]][] = [
   ["B", 2],
 ];
 
-export async function getSettings(): Promise<Settings> {
+async function getSettingsRaw(): Promise<Settings> {
   const sql = await db();
   const [s] = await sql<Settings[]>`
     select league_name, season_name, num_weeks, sub_credit, playoff_size, announcement, rules
@@ -17,21 +18,21 @@ export async function getSettings(): Promise<Settings> {
   return s;
 }
 
-export async function getPlayers(): Promise<Player[]> {
+async function getPlayersRaw(): Promise<Player[]> {
   const sql = await db();
   return sql<Player[]>`
     select id, last_name, first_initial, is_sub, active
     from players order by lower(last_name), lower(first_initial), id`;
 }
 
-export async function getWeeks(): Promise<WeekInfo[]> {
+async function getWeeksRaw(): Promise<WeekInfo[]> {
   const sql = await db();
   return sql<WeekInfo[]>`
     select week_no, to_char(play_date, 'YYYY-MM-DD') as play_date, notes
     from weeks order by week_no`;
 }
 
-export async function getMatches(weekNo?: number): Promise<MatchRow[]> {
+async function getMatchesRaw(weekNo?: number): Promise<MatchRow[]> {
   const sql = await db();
   const rows = await sql<
     { id: number; week_no: number; table_no: number; side: Slot["side"] | null; seat: number | null;
@@ -64,13 +65,13 @@ export async function getMatches(weekNo?: number): Promise<MatchRow[]> {
   return [...byId.values()];
 }
 
-export async function getOffDates(): Promise<OffDate[]> {
+async function getOffDatesRaw(): Promise<OffDate[]> {
   const sql = await db();
   return sql<OffDate[]>`
     select to_char(off_date, 'YYYY-MM-DD') as off_date, reason from off_dates order by off_date`;
 }
 
-export async function getLeague(weekNo?: number) {
+async function getLeagueRaw(weekNo?: number) {
   const [settings, players, weeks, matches, offDates] = await Promise.all([
     getSettings(),
     getPlayers(),
@@ -80,3 +81,11 @@ export async function getLeague(weekNo?: number) {
   ]);
   return { settings, players, weeks, matches, offDates };
 }
+
+// One query per request: the layout and the page both ask for settings, etc.
+export const getSettings = cache(getSettingsRaw);
+export const getPlayers = cache(getPlayersRaw);
+export const getWeeks = cache(getWeeksRaw);
+export const getMatches = cache(getMatchesRaw);
+export const getOffDates = cache(getOffDatesRaw);
+export const getLeague = cache(getLeagueRaw);
