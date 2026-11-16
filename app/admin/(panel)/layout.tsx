@@ -6,7 +6,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <>
       <header className="top admin">
         <div className="wrap">
-          <Link href="/admin" className="brand"><span className="suit">♠</span>League admin</Link>
+          <Link href="/admin" className="brand"><img src="/icons/icon-192.png" alt="" className="logo" width={34} height={34} />League admin</Link>
           <nav>
             <Link href="/admin/players">Players</Link>
             <Link href="/admin/schedule">Schedule &amp; scores</Link>

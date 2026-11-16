@@ -50,7 +50,11 @@ main.wrap { padding-top: 20px; padding-bottom: 48px; }
 header.top { background: var(--brand); color: var(--brand-ink); }
 header.top .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; padding-top: 12px; padding-bottom: 12px; }
 header.top .brand { font-weight: 700; font-size: 1.1rem; color: inherit; text-decoration: none; margin-right: auto; }
-header.top .brand .suit { color: #ffd166; margin-right: 6px; }
+header.top .brand { display: inline-flex; align-items: center; gap: 10px; }
+header.top .brand .logo { border-radius: 8px; flex: none; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.login .card { text-align: center; }
+.login .card form { text-align: left; }
+.login-logo { display: block; margin: 0 auto 10px; border-radius: 22px; box-shadow: 0 3px 10px rgba(0,0,0,.25); }
 header.top nav { display: flex; flex-wrap: wrap; gap: 4px 16px; }
 header.top nav a { color: inherit; text-decoration: none; opacity: 0.9; }
 header.top nav a:hover { opacity: 1; text-decoration: underline; }
