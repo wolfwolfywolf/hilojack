@@ -335,6 +335,10 @@ export async function importScheduleText(fd: FormData) {
       }
       idFor.set(k, id!);
     }
+    // League players who aren't on the new schedule (last season's roster)
+    // are marked inactive so they drop off the standings. Subs are untouched.
+    const keep = [...idFor.values()];
+    await tx`update players set active = false where not is_sub and id <> all(${keep}::int[])`;
     await tx`delete from weeks`; // cascades to matches and slots
     for (const w of parsed.weeks) {
       await tx`insert into weeks (week_no, play_date) values (${w.week}, ${w.date})`;
@@ -359,6 +363,7 @@ export async function importScheduleText(fd: FormData) {
     "/admin/schedule",
     "msg",
     `Imported ${parsed.weeks.length} weeks (${tables} tables) for ${parsed.players.length} players` +
-      (added ? `, and added ${added} new player${added === 1 ? "" : "s"}.` : "."),
+      (added ? `, and added ${added} new player${added === 1 ? "" : "s"}` : "") +
+      ". League players not on this schedule were marked inactive.",
   );
 }
