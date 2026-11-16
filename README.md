@@ -24,18 +24,24 @@ multiple of 4. Any week can be hand-edited after it is made.
 
 ## Setting it up (Supabase + Vercel, both free tiers)
 
-1. **Supabase:** create a project at supabase.com. In **Connect** (or Project Settings → Database), copy the
-   **Transaction pooler** connection string (port 6543) and put your database password in it.
-   The app creates its tables on first start; nothing to run by hand.
-2. **Vercel:** "Add New Project" → import this GitHub repo. Before deploying, add these environment variables:
+1. **Supabase:** create a project at supabase.com (pick a US East region and save the database password).
+   The tables get created automatically the first time the app connects. If you'd rather create them yourself,
+   open **SQL Editor → New query**, paste in [`db/schema.sql`](db/schema.sql), and click **Run**. It's safe to run more than once.
+2. **Connect it to Vercel**, using either method:
+   - **Integration (easiest):** go to Vercel → your project → **Storage** (or **Integrations → Supabase**),
+     connect the Supabase project, and pick all environments. That sets `POSTGRES_URL` for you, and the app uses it.
+   - **By hand:** in Supabase click **Connect**, copy the **Transaction pooler** URI (port 6543), swap in your
+     database password, and save it in Vercel as `DATABASE_URL`.
+
+   Also add these in Vercel → Settings → Environment Variables:
 
    | Name | Value |
    | --- | --- |
-   | `DATABASE_URL` | the Supabase pooler string from step 1 |
    | `SITE_PASSWORD` | the password you give to players |
    | `ADMIN_PASSWORD` | the managers' password |
    | `AUTH_SECRET` | any long random string (`openssl rand -hex 32`) |
 
+   Then **Deployments → ⋯ → Redeploy** so the new variables take effect.
 3. **Domain:** in Vercel → Project → Settings → Domains, add e.g. `league.wolfyspub.com`, then add the CNAME record
    Vercel shows you at your domain registrar.
 4. Open `/admin`, sign in, add players (paste a list), then **Schedule & scores → Make schedule** and set the week 1 date.
