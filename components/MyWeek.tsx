@@ -49,28 +49,28 @@ export function MyWeek({
     return <strong>{displayName(p)}</strong>;
   };
 
-  // This week and the next one with a match for me.
+  // Only the next match for me (normally this week's). Kept to one on purpose.
   const upcoming = weeks
     .filter((w) => week == null || w.week_no >= week)
     .map((w) => ({ w, m: matches.find((m) => m.week_no === w.week_no && m.slots.some((s) => s.player_id === me.id)) }))
     .filter((x) => x.m)
-    .slice(0, 2);
+    .slice(0, 1);
 
   return (
     <section className="card myweek">
       <div className="row" style={{ justifyContent: "space-between" }}>
-        <h2 style={{ margin: 0 }}>{displayName(me)}&apos;s matches</h2>
+        <h2 style={{ margin: 0 }}>{displayName(me)}&apos;s match</h2>
         {picker}
       </div>
       {upcoming.length === 0 && <p className="muted">No upcoming matches on the schedule.</p>}
-      {upcoming.map(({ w, m }, i) => {
+      {upcoming.map(({ w, m }) => {
         const mine = m!.slots.find((s) => s.player_id === me.id)!;
         const partner = m!.slots.find((s) => s.side === mine.side && s.seat !== mine.seat)!;
         const opps = m!.slots.filter((s) => s.side !== mine.side);
         return (
-          <div key={w.week_no} className={i === 0 ? "mw-main" : "mw-next"}>
+          <div key={w.week_no} className="mw-main">
             <div className="muted small">
-              {i === 0 ? "This week" : "Next"} · Week {w.week_no}
+              {w.week_no === week ? "This week" : "Your next match"} · Week {w.week_no}
               {w.play_date && ` · ${fmtDate(w.play_date)}`} · Table {m!.table_no}
             </div>
             {mine.sub_id != null && (

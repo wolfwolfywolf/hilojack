@@ -35,7 +35,7 @@ export function MatchCard({
                   </Link>
                 );
                 return (
-                  <span key={s.seat}>
+                  <span key={s.seat} className="p">
                     {sub ? (
                       <>
                         {link(sub)} <span className="sub">sub for {p ? link(p) : "TBD"}</span>

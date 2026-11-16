@@ -1,6 +1,7 @@
 import { getPlayers } from "@/lib/league";
 import { addPlayers, deletePlayer, updatePlayer } from "@/lib/actions";
 import { displayName } from "@/lib/standings";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { Flash, one, type SearchParams } from "@/components/Flash";
 import type { Player } from "@/lib/types";
 
@@ -12,7 +13,7 @@ function PlayerTable({ title, players }: { title: string; players: Player[] }) {
         <p className="muted">None yet.</p>
       ) : (
         <div className="table-scroll card" style={{ padding: 0 }}>
-          <table>
+          <table className="players-edit">
             <thead>
               <tr><th>Shown as</th><th>Last name</th><th>Initial</th><th>Sub</th><th>Active</th><th /></tr>
             </thead>
@@ -21,12 +22,12 @@ function PlayerTable({ title, players }: { title: string; players: Player[] }) {
                 const formId = `p${p.id}`;
                 return (
                   <tr key={p.id} className={p.active ? undefined : "muted"}>
-                    <td>{displayName(p)}</td>
-                    <td><input form={formId} name="last_name" defaultValue={p.last_name} required style={{ width: "10rem" }} /></td>
-                    <td><input form={formId} name="first_initial" defaultValue={p.first_initial} maxLength={1} style={{ width: "3rem" }} /></td>
-                    <td><input form={formId} type="checkbox" name="is_sub" defaultChecked={p.is_sub} aria-label="Sub" /></td>
-                    <td><input form={formId} type="checkbox" name="active" defaultChecked={p.active} aria-label="Active" /></td>
-                    <td>
+                    <td className="pe-name">{displayName(p)}</td>
+                    <td className="pe-last"><input form={formId} name="last_name" defaultValue={p.last_name} required aria-label="Last name" /></td>
+                    <td className="pe-init"><input form={formId} name="first_initial" defaultValue={p.first_initial} maxLength={1} aria-label="First initial" /></td>
+                    <td className="pe-sub"><label className="inline-check"><input form={formId} type="checkbox" name="is_sub" defaultChecked={p.is_sub} /> <span className="show-sm">Sub</span></label></td>
+                    <td className="pe-active"><label className="inline-check"><input form={formId} type="checkbox" name="active" defaultChecked={p.active} /> <span className="show-sm">Active</span></label></td>
+                    <td className="pe-actions">
                       <div className="row">
                         <form id={formId} action={updatePlayer}>
                           <input type="hidden" name="id" value={p.id} />
@@ -34,7 +35,7 @@ function PlayerTable({ title, players }: { title: string; players: Player[] }) {
                         </form>
                         <form action={deletePlayer}>
                           <input type="hidden" name="id" value={p.id} />
-                          <button type="submit" className="secondary" title="Only works for players not on the schedule">Delete</button>
+                          <ConfirmButton type="submit" className="secondary" message={`Delete ${displayName(p)}? This can't be undone.`} title="Only works for players not on the schedule">Delete</ConfirmButton>
                         </form>
                       </div>
                     </td>

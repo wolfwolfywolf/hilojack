@@ -1,55 +1,93 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { getLeague } from "@/lib/league";
-import { displayName, weekHigh } from "@/lib/standings";
+import { currentWeek, displayName, weekHigh } from "@/lib/standings";
 import { MatchCard } from "@/components/MatchCard";
 import { fmtDate } from "@/components/format";
 import { one, type SearchParams } from "@/components/Flash";
 
+/** One week at a time, opening on the current week, with previous / next. */
 export default async function SchedulePage({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
-  const pid = Number(one(sp.player)) || undefined;
   const { players, weeks, matches } = await getLeague();
   const byId = new Map(players.map((p) => [p.id, p]));
-  const regulars = players.filter((p) => !p.is_sub && p.active);
+  const meId = Number((await cookies()).get("hlj_me")?.value) || undefined;
+  const me = meId ? byId.get(meId) : undefined;
+
+  if (weeks.length === 0) {
+    return (
+      <div>
+        <h1>Schedule</h1>
+        <div className="card muted">The schedule hasn&apos;t been made yet.</div>
+      </div>
+    );
+  }
+
+  const cw = currentWeek(weeks.map((w) => w.week_no), matches) ?? weeks[0].week_no;
+  const asked = Number(one(sp.week));
+  const idx = Math.max(0, weeks.findIndex((w) => w.week_no === (weeks.some((x) => x.week_no === asked) ? asked : cw)));
+  const week = weeks[idx];
+  const prev = weeks[idx - 1];
+  const next = weeks[idx + 1];
+  const ms = matches.filter((m) => m.week_no === week.week_no);
+  // Put my table first so I don't have to hunt for it.
+  if (me) ms.sort((a, b) => Number(b.slots.some((s) => s.player_id === me.id || s.sub_id === me.id)) - Number(a.slots.some((s) => s.player_id === me.id || s.sub_id === me.id)));
+  const high = weekHigh(matches, week.week_no);
 
   return (
     <div>
-      <h1>Schedule</h1>
-      <form className="row" method="get" style={{ marginBottom: 16 }}>
-        <label htmlFor="player" style={{ margin: 0 }}>Show my matches:</label>
-        <select id="player" name="player" defaultValue={pid ?? ""}>
-          <option value="">Everyone</option>
-          {regulars.map((p) => (
-            <option key={p.id} value={p.id}>{displayName(p)}</option>
+      <div className="week-head">
+        {prev ? (
+          <Link className="btn secondary arrow" href={`/schedule?week=${prev.week_no}`} aria-label={`Week ${prev.week_no}`}>‹</Link>
+        ) : (
+          <span className="btn secondary arrow disabled" aria-hidden>‹</span>
+        )}
+        <div className="week-title">
+          <h1>Week {week.week_no}</h1>
+          <div className="muted small">
+            {week.play_date ? fmtDate(week.play_date) : "Date to be set"}
+            {week.week_no === cw ? " · This week" : ""}
+          </div>
+        </div>
+        {next ? (
+          <Link className="btn secondary arrow" href={`/schedule?week=${next.week_no}`} aria-label={`Week ${next.week_no}`}>›</Link>
+        ) : (
+          <span className="btn secondary arrow disabled" aria-hidden>›</span>
+        )}
+      </div>
+
+      <nav className="weeks-nav" aria-label="All weeks">
+        {weeks.map((w) => (
+          <Link
+            key={w.week_no}
+            href={`/schedule?week=${w.week_no}`}
+            className={[w.week_no === week.week_no && "on", w.week_no === cw && "now"].filter(Boolean).join(" ") || undefined}
+          >
+            {w.week_no}
+          </Link>
+        ))}
+      </nav>
+      {week.week_no !== cw && (
+        <p className="small" style={{ marginTop: -6 }}>
+          <Link href="/schedule">Back to this week (week {cw})</Link>
+        </p>
+      )}
+
+      {week.notes && <p className="notice">{week.notes}</p>}
+      {ms.length === 0 ? (
+        <p className="muted">No matches this week.</p>
+      ) : (
+        <div className="grid">
+          {ms.map((m) => (
+            <MatchCard key={m.id} match={m} byId={byId} highlight={me?.id} highSides={high?.matchSides} />
           ))}
-        </select>
-        <button type="submit">Go</button>
-      </form>
-
-      {weeks.length === 0 && <div className="card muted">The schedule hasn&apos;t been made yet.</div>}
-
-      {weeks.map((w) => {
-        let ms = matches.filter((m) => m.week_no === w.week_no);
-        if (pid) ms = ms.filter((m) => m.slots.some((s) => s.player_id === pid || s.sub_id === pid));
-        return (
-          <section key={w.week_no}>
-            <h2>
-              <Link href={`/week/${w.week_no}`}>Week {w.week_no}</Link>
-              {w.play_date && <span className="muted"> · {fmtDate(w.play_date)}</span>}
-            </h2>
-            {w.notes && <p className="notice">{w.notes}</p>}
-            {ms.length === 0 ? (
-              <p className="muted small">{pid ? "Not scheduled this week." : "No matches yet."}</p>
-            ) : (
-              <div className="grid">
-                {ms.map((m) => (
-                  <MatchCard key={m.id} match={m} byId={byId} highlight={pid} highSides={weekHigh(matches, w.week_no)?.matchSides} />
-                ))}
-              </div>
-            )}
-          </section>
-        );
-      })}
+        </div>
+      )}
+      {me && (
+        <p className="small muted">
+          Your table is first and highlighted. <Link href={`/players/${me.id}`}>See all of {displayName(me)}&apos;s weeks</Link>
+        </p>
+      )}
     </div>
   );
 }
