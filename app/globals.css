@@ -239,3 +239,16 @@ section[id^="week-"] { scroll-margin-top: 12px; }
   .edit-match .slot .s-adj { grid-area: adj; }
   .sticky-save { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; }
 }
+
+/* Add to Home Screen tip */
+.install-tip {
+  position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 50;
+  max-width: 520px; margin: 0 auto; display: flex; gap: 12px; align-items: flex-start;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 14px;
+  padding: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+.install-tip img { border-radius: 11px; flex: none; }
+.install-tip p { margin: 4px 0 10px; font-size: 0.95rem; }
+.install-tip .it-share { vertical-align: -3px; color: #0a84ff; }
+.install-tip .it-actions { display: flex; gap: 8px; }
+.install-tip .it-actions button { min-height: 42px; padding: 8px 16px; }

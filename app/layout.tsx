@@ -7,9 +7,10 @@ export const metadata: Metadata = {
   title: "High Low Jack League",
   description: "Standings and schedule",
   robots: { index: false, follow: false },
+  appleWebApp: { capable: true, title: "Hi Lo Jack", statusBarStyle: "default" },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#1d3d24" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

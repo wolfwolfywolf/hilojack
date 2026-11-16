@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSettings } from "@/lib/league";
 import { logout } from "@/lib/actions";
+import { InstallTip } from "@/components/InstallTip";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const s = await getSettings();
@@ -28,6 +29,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         </form>
         <Link href="/admin">League managers</Link>
       </footer>
+      <InstallTip />
     </>
   );
 }
