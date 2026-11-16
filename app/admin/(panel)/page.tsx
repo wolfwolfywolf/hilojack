@@ -31,6 +31,7 @@ export default async function AdminHome() {
           )}
         </div>
       </div>
+      {steps.some((s) => !s.done) && (
       <section className="card">
         <h2 style={{ marginTop: 0 }}>Getting started</h2>
         <ol style={{ margin: 0, paddingLeft: 20 }}>
@@ -41,6 +42,7 @@ export default async function AdminHome() {
           ))}
         </ol>
       </section>
+      )}
     </div>
   );
 }
