@@ -289,3 +289,76 @@ export async function pickMe(fd: FormData) {
   else jar.set("hlj_me", String(id), { path: "/", maxAge: COOKIE_MAX_AGE, sameSite: "lax", httpOnly: true });
   redirect("/");
 }
+
+// ---------- import a schedule (tee sheet) ----------
+
+export async function importScheduleText(fd: FormData) {
+  await requireAdmin();
+  const { parseSchedule, nameKey } = await import("./importSchedule");
+  const parsed = parseSchedule(str(fd, "schedule"));
+  if (!parsed.weeks.length || parsed.problems.length) {
+    const list = parsed.problems.slice(0, 4).join(" ");
+    back("/admin/schedule", "err", `Couldn't import that schedule. ${list}${parsed.problems.length > 4 ? ` (and ${parsed.problems.length - 4} more)` : ""}`);
+  }
+  const sql = await db();
+  const [{ scored }] = await sql<{ scored: number }[]>`
+    select count(*)::int as scored from match_slots where score is not null`;
+  if (scored > 0 && str(fd, "confirm") !== "REPLACE") {
+    back("/admin/schedule", "err", "Scores have already been entered. Type REPLACE in the box to throw them away and import this schedule.");
+  }
+
+  const existing = await sql<{ id: number; last_name: string; first_initial: string }[]>`
+    select id, last_name, first_initial from players`;
+  const byKey = new Map<string, number[]>();
+  for (const p of existing) {
+    const k = nameKey({ last: p.last_name, initial: p.first_initial });
+    byKey.set(k, [...(byKey.get(k) ?? []), p.id]);
+  }
+  const clash = parsed.players.find((n) => (byKey.get(nameKey(n))?.length ?? 0) > 1);
+  if (clash) {
+    back("/admin/schedule", "err", `Two players are already saved as ${clash.last}, ${clash.initial}. Rename or delete one on the Players page, then import again.`);
+  }
+
+  let added = 0;
+  const lastWeek = Math.max(...parsed.weeks.map((w) => w.week));
+  await sql.begin(async (tx) => {
+    const idFor = new Map<string, number>();
+    for (const n of parsed.players) {
+      const k = nameKey(n);
+      let id = byKey.get(k)?.[0];
+      if (id == null) {
+        [{ id }] = await tx<{ id: number }[]>`
+          insert into players (last_name, first_initial) values (${n.last}, ${n.initial}) returning id`;
+        added++;
+      } else {
+        await tx`update players set active = true where id = ${id}`;
+      }
+      idFor.set(k, id!);
+    }
+    await tx`delete from weeks`; // cascades to matches and slots
+    for (const w of parsed.weeks) {
+      await tx`insert into weeks (week_no, play_date) values (${w.week}, ${w.date})`;
+      for (let t = 0; t < w.matches.length; t++) {
+        const [a1, a2, b1, b2] = w.matches[t].map((n) => idFor.get(nameKey(n))!);
+        const [{ id }] = await tx<{ id: number }[]>`
+          insert into matches (week_no, table_no) values (${w.week}, ${t + 1}) returning id`;
+        await tx`
+          insert into match_slots ${tx([
+            { match_id: id, side: "A", seat: 1, player_id: a1 },
+            { match_id: id, side: "A", seat: 2, player_id: a2 },
+            { match_id: id, side: "B", seat: 1, player_id: b1 },
+            { match_id: id, side: "B", seat: 2, player_id: b2 },
+          ])}`;
+      }
+    }
+    await tx`update settings set num_weeks = ${lastWeek} where id = 1`;
+  });
+  refreshAll();
+  const tables = parsed.weeks.reduce((a, w) => a + w.matches.length, 0);
+  back(
+    "/admin/schedule",
+    "msg",
+    `Imported ${parsed.weeks.length} weeks (${tables} tables) for ${parsed.players.length} players` +
+      (added ? `, and added ${added} new player${added === 1 ? "" : "s"}.` : "."),
+  );
+}
