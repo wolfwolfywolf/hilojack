@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { getLeague } from "@/lib/league";
 import { currentWeek, displayName, weekHigh } from "@/lib/standings";
 import { MatchCard } from "@/components/MatchCard";
-import { fmtDate, offBetween } from "@/components/format";
+import { allOffDates, fmtDate, offBetween } from "@/components/format";
 import { one, type SearchParams } from "@/components/Flash";
 
 /** One week at a time, opening on the current week, with previous / next. */
@@ -56,12 +56,17 @@ export default async function SchedulePage({ searchParams }: { searchParams: Sea
         )}
       </div>
 
-      {offBetween(offDates, prev?.play_date, week.play_date).map((o) => (
-        <div key={o.off_date} className="off-night">
-          <strong>No league {fmtDate(o.off_date)}</strong>
-          {o.reason && <> · {o.reason}</>}
-        </div>
-      ))}
+      {(() => {
+        const offs = offBetween(allOffDates(weeks, offDates), prev?.play_date, week.play_date);
+        if (!offs.length) return null;
+        const reasons = [...new Set(offs.map((o) => o.reason).filter(Boolean))];
+        return (
+          <div className="off-night">
+            <strong>No league {offs.map((o) => fmtDate(o.off_date)).join(" & ")}</strong>
+            {reasons.length > 0 && <> · {reasons.join(", ")}</>}
+          </div>
+        );
+      })()}
 
       {week.week_no !== cw && (
         <p className="small" style={{ textAlign: "center" }}>

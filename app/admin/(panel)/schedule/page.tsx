@@ -4,7 +4,7 @@ import { generateSeason, importScheduleText, setWeekDates, skipWeek, unskipDate 
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { currentWeek } from "@/lib/standings";
 import { Flash, one, type SearchParams } from "@/components/Flash";
-import { fmtDate } from "@/components/format";
+import { allOffDates, fmtDate } from "@/components/format";
 
 export default async function ScheduleAdmin({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
@@ -14,6 +14,7 @@ export default async function ScheduleAdmin({ searchParams }: { searchParams: Se
   const sameDate = (w: { week_no: number; play_date: string | null }) =>
     w.play_date ? weeks.filter((x) => x.week_no !== w.week_no && x.play_date === w.play_date).map((x) => x.week_no) : [];
   const dupWeeks = weeks.filter((w) => sameDate(w).length > 0);
+  const gaps = allOffDates(weeks, []);
   const skippable = weeks.filter((w) => w.play_date && (cw == null || w.week_no >= cw));
   const regulars = players.filter((p) => !p.is_sub && p.active).length;
   const hasScores = matches.some((m) => m.slots.some((s) => s.score != null));
@@ -80,6 +81,11 @@ export default async function ScheduleAdmin({ searchParams }: { searchParams: Se
               Skip this night
             </ConfirmButton>
           </form>
+          {gaps.length > 0 && (
+            <p className="muted small">
+              Gaps already in the schedule, shown to players as &quot;No league&quot;: {gaps.map((g) => fmtDate(g.off_date)).join(", ")}.
+            </p>
+          )}
           {offDates.length > 0 && (
             <ul className="off-list">
               {offDates.map((o) => (
