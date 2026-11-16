@@ -226,6 +226,44 @@ export async function saveWeek(fd: FormData) {
   back(path, "msg", "Week saved.");
 }
 
+/** Phone score entry: saves one table's pair points, subs and +/- only (never moves players). */
+export async function saveTable(fd: FormData) {
+  await requireAdmin();
+  const week = intOrNull(fd, "week_no");
+  const id = intOrNull(fd, "match_id");
+  const tableNo = intOrNull(fd, "table_no");
+  if (week == null || id == null) back("/admin/schedule", "err", "Missing table.");
+  const path = `/admin/week/${week}/scores`;
+  const bad = (["A", "B"] as const).filter((side) => {
+    const v = str(fd, `score_${side}`);
+    return v !== "" && !/^\d{1,3}$/.test(v);
+  });
+  if (bad.length) back(`${path}?t=${tableNo}`, "err", "Points must be a whole number, like 14. Nothing was saved.");
+  for (const pos of ["A1", "A2", "B1", "B2"]) {
+    const v = str(fd, `adjust_${pos}`).replace("−", "-").replace(/^\+/, "");
+    if (v !== "" && !/^-?\d{1,2}$/.test(v)) back(`${path}?t=${tableNo}`, "err", "+/− must be a whole number, like -2 or 3. Nothing was saved.");
+  }
+  const adj = (pos: string) => {
+    const v = str(fd, `adjust_${pos}`).replace("−", "-").replace(/^\+/, "");
+    return v === "" ? null : Number(v);
+  };
+  const sql = await db();
+  await sql.begin(async (tx) => {
+    for (const pos of ["A1", "A2", "B1", "B2"]) {
+      const score = intOrNull(fd, `score_${pos[0]}`);
+      const sub = intOrNull(fd, `sub_${pos}`);
+      await tx`
+        insert into match_slots (match_id, side, seat, sub_id, score, adjust)
+        values (${id}, ${pos[0]}, ${Number(pos[1])}, ${sub}, ${score}, ${adj(pos)})
+        on conflict (match_id, side, seat) do update set
+          sub_id = case when excluded.sub_id = match_slots.player_id then null else excluded.sub_id end,
+          score = excluded.score, adjust = excluded.adjust`;
+    }
+  });
+  refreshAll();
+  back(`${path}?after=${tableNo}`, "msg", `Table ${tableNo} saved.`);
+}
+
 export async function addMatch(fd: FormData) {
   await requireAdmin();
   const week = intOrNull(fd, "week_no");

@@ -46,6 +46,7 @@ export default async function WeekAdmin({
         (both partners get the same points). Then press Save. Leave points blank until the match is played.
         Use +/− for one player only, such as a no-show (−2, partner +3) or leaving early.
       </p>
+      <p><Link href={`/admin/week/${n}/scores`} className="btn">Enter scores one table at a time</Link></p>
       <Flash msg={one(sp.msg)} err={one(sp.err)} />
       {doubled.length > 0 && <p className="warn">Scheduled more than once: {doubled.join(", ")}</p>}
       {missing.length > 0 && <p className="warn">Not scheduled this week: {missing.join(", ")}</p>}
