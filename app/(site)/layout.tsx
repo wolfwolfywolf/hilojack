@@ -25,6 +25,9 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         </div>
       </header>
       <main className="wrap">{children}</main>
+      <footer className="wrap small muted" style={{ paddingBottom: 24 }}>
+        <Link href="/admin" className="muted">League managers</Link>
+      </footer>
     </>
   );
 }

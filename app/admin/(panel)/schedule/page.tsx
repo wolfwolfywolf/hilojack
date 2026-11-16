@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getLeague } from "@/lib/league";
-import { generateSeason, setWeekDates } from "@/lib/actions";
+import { generateSeason, importScheduleText, setWeekDates } from "@/lib/actions";
 import { Flash, one, type SearchParams } from "@/components/Flash";
 import { fmtDate } from "@/components/format";
 
@@ -42,6 +42,25 @@ export default async function ScheduleAdmin({ searchParams }: { searchParams: Se
           </table>
         </div>
       )}
+
+      <section className="card">
+        <h2 style={{ marginTop: 0 }}>Import a schedule you already have</h2>
+        <p>
+          Open the tee sheet PDF, press <strong>Ctrl+A</strong> (or ⌘A) then <strong>Ctrl+C</strong>, and paste it below.
+          Each &quot;Round&quot; becomes a week with its date, and every 4 names make a table: the first two are partners,
+          the next two are their opponents. Names you haven&apos;t added yet are added as players.
+        </p>
+        <form action={importScheduleText}>
+          <textarea name="schedule" required placeholder={"Round 1 (Wed, November 5)\nKhoury, John   Nolan, Ed   Lavornia, Anthony   Foley, Chris\n..."} style={{ minHeight: "10rem" }} />
+          <div className="row" style={{ marginTop: 8 }}>
+            {hasScores && <input name="confirm" placeholder="Type REPLACE" aria-label="Type REPLACE to confirm" />}
+            <button type="submit">Import schedule</button>
+          </div>
+        </form>
+        {weeks.length > 0 && (
+          <p className="warn">Importing replaces the current schedule{hasScores ? " and all scores entered so far" : ""}.</p>
+        )}
+      </section>
 
       <section className="card">
         <h2 style={{ marginTop: 0 }}>Set league night dates</h2>
