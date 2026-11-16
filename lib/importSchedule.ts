@@ -29,7 +29,9 @@ export interface ImportResult {
 
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 const HEADER = /\b(?:round|week)\s+(\d{1,2})\b\s*(?:\(([^)]*)\))?/gi;
-const NAME = /([A-Z][A-Za-z'’\-]+(?:\s(?:[A-Z][A-Za-z'’\-]+))?),\s*([A-Za-z])[A-Za-z.]*/g;
+// Last names are one word (hyphens and apostrophes allowed). Allowing two
+// words would swallow a middle name: "Petrarca, John Max Cardono, Gary".
+const NAME = /([A-Z][A-Za-z'’\-]+),\s*([A-Za-z])[A-Za-z.]*/g;
 
 export const nameKey = (n: ImportedName) => `${n.last.toLowerCase()}|${n.initial.toLowerCase()}`;
 

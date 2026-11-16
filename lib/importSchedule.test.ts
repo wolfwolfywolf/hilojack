@@ -40,3 +40,8 @@ test("flags uneven tables and doubled names", () => {
   const r = parseSchedule("Week 1\nAa, B  Cc, D  Ee, F\nWeek 2\nAa, B  Aa, B  Cc, D  Ee, F");
   assert.equal(r.problems.length, 2);
 });
+
+test("a middle name before the next player doesn't merge into a last name", () => {
+  const r = parseSchedule("Round 1\nPetrarca, John Max Cardono, Gary   Rotella, Lou  Nolan, Ed");
+  assert.deepEqual(r.weeks[0].matches[0].map((n) => n.last), ["Petrarca", "Cardono", "Rotella", "Nolan"]);
+});
