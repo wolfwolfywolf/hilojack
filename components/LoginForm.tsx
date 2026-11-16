@@ -18,6 +18,7 @@ export function LoginForm({
   return (
     <main className="login">
       <div className="card">
+        <img src="/icons/icon-192.png" alt="" className="login-logo" width={96} height={96} />
         <h1>{title}</h1>
         {warning && <div className="flash err" role="alert">{warning}</div>}
         <Flash err={err} />

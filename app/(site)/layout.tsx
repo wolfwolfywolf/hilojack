@@ -10,7 +10,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <header className="top">
         <div className="wrap">
           <Link href="/" className="brand">
-            <span className="suit">♠</span>
+            <img src="/icons/icon-192.png" alt="" className="logo" width={34} height={34} />
             {s.league_name}
           </Link>
           <nav>

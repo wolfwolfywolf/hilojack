@@ -23,14 +23,15 @@ export default async function AdminHome() {
           {cw != null ? (
             <>
               <div style={{ fontSize: "1.6rem", fontWeight: 700 }}>Week {cw}</div>
-              <Link href={`/admin/week/${cw}/scores`} className="btn" style={{ marginTop: 6 }}>Enter scores</Link>
-              <div className="small" style={{ marginTop: 6 }}><Link href={`/admin/week/${cw}`}>Edit matchups</Link></div>
+              <Link href={`/admin/week/${cw}/scores`} className="btn big" style={{ marginTop: 8 }}>Enter scores →</Link>
+              <div className="small" style={{ marginTop: 10 }}><Link href={`/admin/week/${cw}`}>Edit matchups</Link></div>
             </>
           ) : (
             <div className="muted">No schedule yet</div>
           )}
         </div>
       </div>
+      {steps.some((s) => !s.done) && (
       <section className="card">
         <h2 style={{ marginTop: 0 }}>Getting started</h2>
         <ol style={{ margin: 0, paddingLeft: 20 }}>
@@ -41,6 +42,7 @@ export default async function AdminHome() {
           ))}
         </ol>
       </section>
+      )}
     </div>
   );
 }
