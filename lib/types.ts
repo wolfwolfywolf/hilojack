@@ -31,6 +31,11 @@ export interface Slot {
   adjust: number | null;
 }
 
+export interface OffDate {
+  off_date: string; // YYYY-MM-DD
+  reason: string;
+}
+
 export interface MatchRow {
   id: number;
   week_no: number;

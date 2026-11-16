@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "./db";
-import type { MatchRow, Player, Settings, Slot, WeekInfo } from "./types";
+import type { MatchRow, OffDate, Player, Settings, Slot, WeekInfo } from "./types";
 
 const SLOT_ORDER: [Slot["side"], Slot["seat"]][] = [
   ["A", 1],
@@ -64,12 +64,19 @@ export async function getMatches(weekNo?: number): Promise<MatchRow[]> {
   return [...byId.values()];
 }
 
+export async function getOffDates(): Promise<OffDate[]> {
+  const sql = await db();
+  return sql<OffDate[]>`
+    select to_char(off_date, 'YYYY-MM-DD') as off_date, reason from off_dates order by off_date`;
+}
+
 export async function getLeague(weekNo?: number) {
-  const [settings, players, weeks, matches] = await Promise.all([
+  const [settings, players, weeks, matches, offDates] = await Promise.all([
     getSettings(),
     getPlayers(),
     getWeeks(),
     getMatches(weekNo),
+    getOffDates(),
   ]);
-  return { settings, players, weeks, matches };
+  return { settings, players, weeks, matches, offDates };
 }

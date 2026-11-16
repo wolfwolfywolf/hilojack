@@ -3,13 +3,13 @@ import { cookies } from "next/headers";
 import { getLeague } from "@/lib/league";
 import { currentWeek, displayName, weekHigh } from "@/lib/standings";
 import { MatchCard } from "@/components/MatchCard";
-import { fmtDate } from "@/components/format";
+import { fmtDate, offBetween } from "@/components/format";
 import { one, type SearchParams } from "@/components/Flash";
 
 /** One week at a time, opening on the current week, with previous / next. */
 export default async function SchedulePage({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
-  const { players, weeks, matches } = await getLeague();
+  const { players, weeks, matches, offDates } = await getLeague();
   const byId = new Map(players.map((p) => [p.id, p]));
   const meId = Number((await cookies()).get("hlj_me")?.value) || undefined;
   const me = meId ? byId.get(meId) : undefined;
@@ -55,6 +55,13 @@ export default async function SchedulePage({ searchParams }: { searchParams: Sea
           <span className="btn secondary arrow disabled" aria-hidden>›</span>
         )}
       </div>
+
+      {offBetween(offDates, prev?.play_date, week.play_date).map((o) => (
+        <div key={o.off_date} className="off-night">
+          <strong>No league {fmtDate(o.off_date)}</strong>
+          {o.reason && <> · {o.reason}</>}
+        </div>
+      ))}
 
       {week.week_no !== cw && (
         <p className="small" style={{ textAlign: "center" }}>

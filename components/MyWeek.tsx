@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { pickMe } from "@/lib/actions";
 import { displayName } from "@/lib/standings";
-import type { MatchRow, Player, WeekInfo } from "@/lib/types";
-import { fmtDate } from "./format";
+import type { MatchRow, OffDate, Player, WeekInfo } from "@/lib/types";
+import { fmtDate, offBetween, todayLocal } from "./format";
 
 /** "Who am I playing this week?" card, remembered per device. */
 export function MyWeek({
@@ -11,12 +11,14 @@ export function MyWeek({
   weeks,
   matches,
   week,
+  offDates = [],
 }: {
   me: Player | undefined;
   players: Player[];
   weeks: WeekInfo[];
   matches: MatchRow[];
   week: number | null;
+  offDates?: OffDate[];
 }) {
   const regulars = players.filter((p) => !p.is_sub && p.active);
   const byId = new Map(players.map((p) => [p.id, p]));
@@ -69,6 +71,12 @@ export function MyWeek({
         const opps = m!.slots.filter((s) => s.side !== mine.side);
         return (
           <div key={w.week_no} className="mw-main">
+            {offBetween(offDates, addDays(todayLocal(), -1), w.play_date).map((o) => (
+              <div key={o.off_date} className="off-night">
+                <strong>No league {fmtDate(o.off_date)}</strong>
+                {o.reason && <> · {o.reason}</>}
+              </div>
+            ))}
             <div className="muted small">
               {w.week_no === week ? "This week" : "Your next match"} · Week {w.week_no}
               {w.play_date && ` · ${fmtDate(w.play_date)}`}
@@ -88,4 +96,9 @@ export function MyWeek({
       </p>
     </section>
   );
+}
+
+function addDays(d: string, n: number): string {
+  const [y, m, day] = d.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, day + n)).toISOString().slice(0, 10);
 }
