@@ -18,9 +18,6 @@ export function MatchCard({
   const winner = a != null && b != null && a !== b ? (a > b ? "A" : "B") : null;
   return (
     <div className="card match">
-      <div className="head">
-        <span>Table {match.table_no}</span>
-      </div>
       {(["A", "B"] as const).map((side) => (
         <div key={side} className={`side${winner === side ? " win" : ""}`}>
           <div className="names">

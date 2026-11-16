@@ -195,19 +195,18 @@ section[id^="week-"] { scroll-margin-top: 12px; }
   /* Player season table: one compact block per week */
   table.stack-sm thead { display: none; }
   table.stack-sm tr {
-    display: grid; grid-template-columns: auto auto auto 1fr;
-    grid-template-areas: "wk date tbl pts" "partner partner partner partner" "opp opp opp opp";
+    display: grid; grid-template-columns: auto auto 1fr;
+    grid-template-areas: "wk date pts" "partner partner partner" "opp opp opp";
     gap: 2px 12px; padding: 10px 12px; border-bottom: 1px solid var(--border);
   }
   table.stack-sm td { border: none; padding: 0; white-space: normal; text-align: left; }
   table.stack-sm td::before { content: attr(data-label) " "; color: var(--muted); font-size: 0.8rem; }
   table.stack-sm td:nth-child(1) { grid-area: wk; }
   table.stack-sm td:nth-child(2) { grid-area: date; }
-  table.stack-sm td:nth-child(3) { grid-area: tbl; }
-  table.stack-sm td:nth-child(4) { grid-area: partner; }
-  table.stack-sm td:nth-child(5) { grid-area: opp; }
-  table.stack-sm td:nth-child(6) { grid-area: pts; text-align: right; font-weight: 700; }
-  table.stack-sm td[colspan] { grid-area: tbl / tbl / tbl / pts; }
+  table.stack-sm td:nth-child(3) { grid-area: partner; }
+  table.stack-sm td:nth-child(4) { grid-area: opp; }
+  table.stack-sm td:nth-child(5) { grid-area: pts; text-align: right; font-weight: 700; }
+  table.stack-sm td[colspan] { grid-area: pts; text-align: right; }
   table.stack-sm td[colspan]::before, table.stack-sm td:nth-child(2)::before { content: none; }
 
   /* Admin players list: one card-like block per player */

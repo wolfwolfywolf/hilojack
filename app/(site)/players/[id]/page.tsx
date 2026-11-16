@@ -49,7 +49,6 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
             <tr>
               <th className="num">Wk</th>
               <th>Date</th>
-              <th>Table</th>
               <th>Partner</th>
               <th>Opponents</th>
               <th className="num">Points</th>
@@ -61,7 +60,6 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                 <tr key={r.w.week_no}>
                   <td className="num" data-label="Week"><Link href={`/schedule?week=${r.w.week_no}`}>{r.w.week_no}</Link></td>
                   <td data-label="Date">{fmtDate(r.w.play_date, { short: true })}</td>
-                  <td data-label="Table">{r.m.table_no}</td>
                   <td data-label="Partner">{who(r.partner!)}</td>
                   <td data-label="Against">{who(r.opps![0])} &amp; {who(r.opps![1])}</td>
                   <td className="num" data-label="Points">
@@ -78,7 +76,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                 <tr key={r.w.week_no}>
                   <td className="num" data-label="Week">{r.w.week_no}</td>
                   <td data-label="Date">{fmtDate(r.w.play_date, { short: true })}</td>
-                  <td colSpan={4} className="muted" data-label="">Not scheduled</td>
+                  <td colSpan={3} className="muted" data-label="">Not scheduled</td>
                 </tr>
               ),
             )}
@@ -86,7 +84,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         </table>
       </div>
       <p className="small muted">
-        <Link href={`/schedule?player=${id}`}>Show on the schedule</Link>
+        <Link href="/schedule">This week&apos;s schedule</Link>
       </p>
     </div>
   );

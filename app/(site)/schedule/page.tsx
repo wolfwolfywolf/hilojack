@@ -56,19 +56,8 @@ export default async function SchedulePage({ searchParams }: { searchParams: Sea
         )}
       </div>
 
-      <nav className="weeks-nav" aria-label="All weeks">
-        {weeks.map((w) => (
-          <Link
-            key={w.week_no}
-            href={`/schedule?week=${w.week_no}`}
-            className={[w.week_no === week.week_no && "on", w.week_no === cw && "now"].filter(Boolean).join(" ") || undefined}
-          >
-            {w.week_no}
-          </Link>
-        ))}
-      </nav>
       {week.week_no !== cw && (
-        <p className="small" style={{ marginTop: -6 }}>
+        <p className="small" style={{ textAlign: "center" }}>
           <Link href="/schedule">Back to this week (week {cw})</Link>
         </p>
       )}

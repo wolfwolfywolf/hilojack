@@ -71,7 +71,7 @@ export function MyWeek({
           <div key={w.week_no} className="mw-main">
             <div className="muted small">
               {w.week_no === week ? "This week" : "Your next match"} · Week {w.week_no}
-              {w.play_date && ` · ${fmtDate(w.play_date)}`} · Table {m!.table_no}
+              {w.play_date && ` · ${fmtDate(w.play_date)}`}
             </div>
             {mine.sub_id != null && (
               <div className="warn">Your sub: {displayName(byId.get(mine.sub_id))}</div>
