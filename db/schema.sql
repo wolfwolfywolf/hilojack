@@ -49,3 +49,10 @@ create table if not exists match_slots (
   primary key (match_id, side, seat)
 );
 
+-- Lock the tables away from Supabase's public API (anon/authenticated keys).
+-- The app connects as the table owner, which RLS does not restrict.
+alter table settings    enable row level security;
+alter table players     enable row level security;
+alter table weeks       enable row level security;
+alter table matches     enable row level security;
+alter table match_slots enable row level security;
