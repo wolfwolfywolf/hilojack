@@ -4,10 +4,10 @@ import { MyWeek } from "@/components/MyWeek";
 import { getLeague } from "@/lib/league";
 import { computeStandings, currentWeek, displayName, subAppearances, weekHigh } from "@/lib/standings";
 import { MatchCard } from "@/components/MatchCard";
-import { fmtAvg, fmtDate } from "@/components/format";
+import { fmtAvg, fmtDate, allOffDates } from "@/components/format";
 
 export default async function StandingsPage() {
-  const { settings, players, weeks, matches } = await getLeague();
+  const { settings, players, weeks, matches, offDates } = await getLeague();
   const rows = computeStandings(players, matches, settings);
   const byId = new Map(players.map((p) => [p.id, p]));
   const cw = currentWeek(weeks.map((w) => w.week_no), matches);
@@ -33,7 +33,7 @@ export default async function StandingsPage() {
 
       {settings.announcement && <div className="notice">{settings.announcement}</div>}
 
-      {weeks.length > 0 && <MyWeek me={me} players={players} weeks={weeks} matches={matches} week={cw} />}
+      {weeks.length > 0 && <MyWeek me={me} players={players} weeks={weeks} matches={matches} week={cw} offDates={allOffDates(weeks, offDates)} />}
 
       {rows.length === 0 ? (
         <div className="card muted">No players yet. A league manager can add them on the admin pages.</div>

@@ -247,6 +247,19 @@ section[id^="week-"] { scroll-margin-top: 12px; }
   .sticky-save { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; }
 }
 
+/* Holiday / no league night */
+.off-night { background: var(--highlight); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin: 8px 0 12px; text-align: center; }
+
+.warn-inline { color: var(--err); font-size: 0.85rem; white-space: nowrap; }
+.stack-form { display: grid; gap: 6px; max-width: 420px; }
+.stack-form label { margin: 6px 0 0; }
+.stack-form button { justify-self: start; margin-top: 8px; }
+.off-list { list-style: none; padding: 0; margin: 14px 0 0; border-top: 1px solid var(--border); }
+.off-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+
+.no-cards { background: var(--highlight); border-radius: 10px; padding: 12px 14px; margin: 10px 0 12px; text-align: center; }
+.no-cards .nc-title { font-size: 1.25rem; font-weight: 700; }
+
 /* Add to Home Screen tip */
 .install-tip {
   position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 50;

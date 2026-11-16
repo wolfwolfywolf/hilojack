@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { COOKIE, COOKIE_MAX_AGE, checkPassword, tokenFor, tokenValid, type Role } from "./auth";
 import { db } from "./db";
 import { generateSchedule, scheduleStats } from "./schedule";
+import { fmtDate } from "@/components/format";
 
 // ---------- helpers ----------
 
@@ -180,15 +181,48 @@ export async function generateSeason(fd: FormData) {
   );
 }
 
+/** Holiday: no league on week N's date. Week N and every later week move back 7 days. */
+export async function skipWeek(fd: FormData) {
+  await requireAdmin();
+  const week = intOrNull(fd, "week_no");
+  const reason = str(fd, "reason").slice(0, 60);
+  const sql = await db();
+  const [w] = await sql<{ play_date: string | null }[]>`
+    select to_char(play_date, 'YYYY-MM-DD') as play_date from weeks where week_no = ${week}`;
+  if (!w?.play_date) back("/admin/schedule", "err", "That week has no date yet, so there is nothing to skip.");
+  await sql.begin(async (tx) => {
+    await tx`insert into off_dates (off_date, reason) values (${w.play_date}, ${reason}) on conflict (off_date) do update set reason = excluded.reason`;
+    await tx`update weeks set play_date = play_date + 7 where week_no >= ${week} and play_date is not null`;
+  });
+  refreshAll();
+  back("/admin/schedule", "msg", `No league on ${fmtDate(w.play_date)}. Week ${week} and every week after it moved back one week.`);
+}
+
+/** Undo a holiday: remove the off night and pull every later week forward 7 days. */
+export async function unskipDate(fd: FormData) {
+  await requireAdmin();
+  const date = str(fd, "off_date");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) back("/admin/schedule", "err", "Missing date.");
+  const sql = await db();
+  await sql.begin(async (tx) => {
+    const del = await tx`delete from off_dates where off_date = ${date}::date`;
+    if (del.count) await tx`update weeks set play_date = play_date - 7 where play_date > ${date}::date`;
+  });
+  refreshAll();
+  back("/admin/schedule", "msg", "Holiday removed. The weeks after it moved forward one week.");
+}
+
 export async function setWeekDates(fd: FormData) {
   await requireAdmin();
   const start = str(fd, "start_date");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(start)) back("/admin/schedule", "err", "Pick a start date.");
   const sql = await db();
-  await sql`
-    update weeks set play_date = ${start}::date + ((week_no - 1) * 7)`;
+  await sql.begin(async (tx) => {
+    await tx`update weeks set play_date = ${start}::date + ((week_no - 1) * 7)`;
+    await tx`delete from off_dates`;
+  });
   refreshAll();
-  back("/admin/schedule", "msg", "Week dates set, one week apart. You can change any single date on its week page.");
+  back("/admin/schedule", "msg", "Week dates set, one week apart. Any holidays were cleared, so add them again if you need them.");
 }
 
 export async function saveWeek(fd: FormData) {
@@ -198,6 +232,13 @@ export async function saveWeek(fd: FormData) {
   const path = `/admin/week/${week}`;
   const date = str(fd, "play_date");
   const sql = await db();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const [clash] = await sql<{ week_no: number }[]>`
+      select week_no from weeks where play_date = ${date}::date and week_no <> ${week} limit 1`;
+    if (clash) back(path, "err", `Week ${clash.week_no} is already on that date. Nothing was saved. To skip a night for a holiday, use "No league this week" on Schedule & scores.`);
+    const [off] = await sql<{ reason: string }[]>`select reason from off_dates where off_date = ${date}::date`;
+    if (off) back(path, "err", `That date is marked as no league${off.reason ? ` (${off.reason})` : ""}. Nothing was saved.`);
+  }
   const matchIds = fd.getAll("match_id").map(Number).filter(Number.isInteger);
   await sql.begin(async (tx) => {
     await tx`
@@ -314,6 +355,7 @@ export async function resetSeason(fd: FormData) {
   if (str(fd, "confirm") !== "RESET") back("/admin/settings", "err", "Type RESET to clear the season.");
   const sql = await db();
   await sql`delete from weeks`;
+  await sql`delete from off_dates`;
   refreshAll();
   back("/admin/settings", "msg", "Schedule and scores cleared. Players were kept.");
 }
@@ -378,6 +420,7 @@ export async function importScheduleText(fd: FormData) {
     const keep = [...idFor.values()];
     await tx`update players set active = false where not is_sub and id <> all(${keep}::int[])`;
     await tx`delete from weeks`; // cascades to matches and slots
+    await tx`delete from off_dates`;
     for (const w of parsed.weeks) {
       await tx`insert into weeks (week_no, play_date) values (${w.week}, ${w.date})`;
       for (let t = 0; t < w.matches.length; t++) {
