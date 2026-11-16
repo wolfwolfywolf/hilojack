@@ -12,7 +12,14 @@ export const COOKIE: Record<Role, string> = {
 export const COOKIE_MAX_AGE = 60 * 60 * 24 * 180; // ~6 months
 
 function passwordFor(role: Role): string | undefined {
-  return role === "admin" ? process.env.ADMIN_PASSWORD : process.env.SITE_PASSWORD;
+  // Trim so a stray space or newline pasted into Vercel doesn't break sign-in.
+  const raw = role === "admin" ? process.env.ADMIN_PASSWORD : process.env.SITE_PASSWORD;
+  return raw?.trim() || undefined;
+}
+
+/** Whether this deployment has a password set for the role (for setup hints). */
+export function passwordConfigured(role: Role): boolean {
+  return passwordFor(role) !== undefined;
 }
 
 function secret(): string {
