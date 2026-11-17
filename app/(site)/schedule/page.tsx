@@ -86,7 +86,7 @@ export default async function SchedulePage({ searchParams }: { searchParams: Sea
       )}
       {me && (
         <p className="small muted">
-          Your table is first and highlighted. <Link href={`/players/${me.id}`}>See all of {displayName(me)}&apos;s weeks</Link>
+          Your table is first and outlined in yellow. <Link href={`/players/${me.id}`}>See all of {displayName(me)}&apos;s weeks</Link>
         </p>
       )}
     </div>

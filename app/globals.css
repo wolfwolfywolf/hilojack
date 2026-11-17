@@ -95,7 +95,6 @@ tr.hl td { background: var(--highlight); }
 .match .pscore { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 6px; font-size: 0.85rem; }
 .me { background: var(--gold); color: var(--gold-ink); border-radius: 5px; padding: 1px 5px; font-weight: 700; text-decoration: none; }
 .match.mine { border: 2px solid var(--gold); background: var(--gold-tint); }
-.match .mine-label { display: inline-block; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gold-ink); background: var(--gold); border-radius: 999px; padding: 2px 9px; margin-bottom: 6px; }
 table.standings tr.me-row td { background: var(--gold-tint); font-weight: 700; }
 table.standings tr.me-row td:first-child { box-shadow: inset 5px 0 0 var(--gold); }
 table.standings tr.me-row a { color: var(--text); }
