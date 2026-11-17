@@ -4,6 +4,7 @@ import { getLeague } from "@/lib/league";
 import { addMatch, deleteMatch, saveWeek } from "@/lib/actions";
 import { displayName, subLabel, subStats } from "@/lib/standings";
 import { ConfirmButton } from "@/components/ConfirmButton";
+import { WeekViews } from "@/components/WeekViews";
 import { Flash, one, type SearchParams } from "@/components/Flash";
 
 export default async function WeekAdmin({
@@ -29,6 +30,12 @@ export default async function WeekAdmin({
   const byId = new Map(players.map((p) => [p.id, p]));
   const doubled = [...counts].filter(([, c]) => c > 1).map(([id]) => displayName(byId.get(id)));
   const missing = regulars.filter((p) => p.active && !counts.has(p.id)).map((p) => displayName(p));
+  const seats = ms
+    .flatMap((m) => m.slots.map((s) => ({ p: s.player_id != null ? byId.get(s.player_id) : undefined, table: m.table_no, subField: `sub_${m.id}_${s.side}${s.seat}` })))
+    .filter((x) => x.p)
+    .map((x) => ({ id: x.p!.id, name: displayName(x.p), table: x.table, subField: x.subField }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const subOptions = subs.map((p) => ({ id: p.id, label: subLabel(p, subStatById) }));
   const prev = weeks.find((w) => w.week_no === n - 1);
   const next = weeks.find((w) => w.week_no === n + 1);
 
@@ -65,6 +72,7 @@ export default async function WeekAdmin({
           </div>
         </div>
 
+        <WeekViews seats={seats} subs={subOptions}>
         <div className="grid wide">
           {ms.map((m) => (
             <div key={m.id} className="card edit-match">
@@ -129,6 +137,7 @@ export default async function WeekAdmin({
             </div>
           ))}
         </div>
+        </WeekViews>
         <div className="sticky-save row">
           <button type="submit">Save week {n}</button>
           <button type="submit" formAction={addMatch} className="secondary">Add a table</button>

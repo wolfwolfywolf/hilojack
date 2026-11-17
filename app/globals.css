@@ -382,3 +382,15 @@ header.top .wrap > nav { order: 3; }
 .match .team-score .high-score { color: #8a6d00; background: #ffe58a; border-radius: 999px; padding: 0 10px; }
 .match .team-score .badge { margin: 0; }
 .match .team .sub a.me { color: var(--gold-ink); }
+
+/* Edit week: By table / By player toggle */
+.view-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: 3px; margin: 0 0 14px; gap: 2px; }
+.view-toggle button { background: transparent; color: var(--text); border: none; border-radius: 999px; padding: 6px 14px; font-weight: 600; cursor: pointer; }
+.view-toggle button.on { background: var(--brand); color: #fff; }
+.by-player ul { list-style: none; margin: 0; padding: 0; }
+.by-player li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 10px; align-items: center; padding: 7px 0; border-top: 1px solid var(--border); }
+.by-player li:first-child { border-top: none; }
+.by-player .bp-name { font-weight: 600; }
+.by-player select { width: 100%; padding: 6px; }
+.by-player li.has-sub { background: var(--gold-tint); margin: 0 -8px; padding: 7px 8px; border-radius: 6px; }
+.by-player .bp-table { display: block; font-weight: 400; font-size: 0.8rem; color: var(--muted); }
