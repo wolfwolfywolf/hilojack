@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import { createHash } from "node:crypto";
 import { SCHEMA_SQL } from "./schema.ts";
 
 type Sql = ReturnType<typeof postgres>;
@@ -37,11 +38,34 @@ function client(): Sql {
   return g.__hljSql;
 }
 
-/** Returns a ready-to-use sql client, creating tables on first use. */
+/** Changes whenever lib/schema.ts changes, so a new deploy with a new schema applies it once. */
+export const SCHEMA_VERSION = "hlj-schema-" + createHash("sha256").update(SCHEMA_SQL).digest("hex").slice(0, 12);
+
+/**
+ * Apply the schema only if the database doesn't already have this version.
+ * The version is kept as a comment on the settings table, so a normal server start costs one tiny query
+ * instead of re-running every CREATE/ALTER (the ALTERs lock each table and made cold starts slow).
+ */
+async function ensureSchema(sql: Sql): Promise<void> {
+  const [row] = await sql<{ v: string | null }[]>`
+    select obj_description(to_regclass('public.settings'), 'pg_class') as v`;
+  if (row?.v === SCHEMA_VERSION) return;
+  await sql.begin(async (tx) => {
+    // One server at a time, in case several start together after a deploy.
+    await tx`select pg_advisory_xact_lock(724501)`;
+    const [again] = await tx<{ v: string | null }[]>`
+      select obj_description(to_regclass('public.settings'), 'pg_class') as v`;
+    if (again?.v === SCHEMA_VERSION) return;
+    await tx.unsafe(SCHEMA_SQL);
+    await tx.unsafe(`comment on table settings is '${SCHEMA_VERSION}'`);
+  });
+}
+
+/** Returns a ready-to-use sql client, making sure the tables exist (checked once per server instance). */
 export async function db(): Promise<Sql> {
   const sql = client();
   if (!g.__hljSchema) {
-    g.__hljSchema = sql.unsafe(SCHEMA_SQL).then(() => undefined);
+    g.__hljSchema = ensureSchema(sql);
     g.__hljSchema.catch(() => {
       g.__hljSchema = undefined;
     });
