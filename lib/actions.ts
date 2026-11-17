@@ -104,7 +104,7 @@ export async function updatePlayer(fd: FormData) {
   await requireAdmin();
   const id = intOrNull(fd, "id");
   const last = str(fd, "last_name");
-  if (id == null || !last) back("/admin/players", "err", "Last name is required.");
+  if (id == null || !last) back(`/admin/players/${id ?? ""}`, "err", "Last name is required.");
   const initial = str(fd, "first_initial").replace(/[^A-Za-z]/g, "").charAt(0).toUpperCase();
   const sql = await db();
   await sql`
@@ -122,10 +122,15 @@ export async function deletePlayer(fd: FormData) {
   await requireAdmin();
   const id = intOrNull(fd, "id");
   const sql = await db();
-  const [{ n }] = await sql<{ n: number }[]>`
-    select count(*)::int as n from match_slots where player_id = ${id} or sub_id = ${id}`;
-  if (n > 0) {
-    back("/admin/players", "err", "That player is on the schedule. Mark them inactive instead, or replace them on the schedule first.");
+  const [{ scored, scheduled }] = await sql<{ scored: number; scheduled: number }[]>`
+    select count(*) filter (where score is not null or adjust is not null)::int as scored,
+           count(*)::int as scheduled
+    from match_slots where player_id = ${id} or sub_id = ${id}`;
+  if (scored > 0) {
+    back(`/admin/players/${id}`, "err", "Can't delete: this player has scores. Untick Active instead.");
+  }
+  if (scheduled > 0) {
+    back(`/admin/players/${id}`, "err", "Can't delete: this player is on the schedule. Untick Active instead, or swap them out of their tables first.");
   }
   await sql`delete from players where id = ${id}`;
   refreshAll();

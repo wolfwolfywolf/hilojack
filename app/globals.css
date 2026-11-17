@@ -334,3 +334,18 @@ a.is-pending:not(.btn) { opacity: 0.6; }
   .sk::after, button.is-pending::after, .btn.is-pending::after { animation-duration: 2s; }
   .nav-progress.on { transition: opacity 0.1s; width: 85%; }
 }
+
+/* Admin players: compact name list + edit screen */
+.name-list { list-style: none; margin: 0; padding: 4px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.name-list li a { display: block; padding: 9px 14px; text-decoration: none; }
+.name-list li a:hover { background: var(--surface-2); }
+.add-players summary, .inactive-players summary { cursor: pointer; font-weight: 600; }
+.add-players form { margin-top: 10px; }
+.inactive-players { margin-top: 1.25rem; }
+.inactive-players summary { color: var(--muted); }
+.inactive-players .name-list a { color: var(--muted); }
+.edit-player { max-width: 520px; }
+.edit-player .stack-form .inline-check { display: flex; gap: 8px; align-items: center; padding: 6px 0; }
+.danger-zone { margin-top: 16px; }
+button:disabled { opacity: .4; cursor: not-allowed; }
+.edit-player .stack-form .big-save { justify-self: stretch; }
