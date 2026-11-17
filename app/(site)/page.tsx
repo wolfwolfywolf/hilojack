@@ -23,6 +23,11 @@ export default async function StandingsPage() {
   const hasMe = (m: (typeof matches)[number]) => me != null && m.slots.some((s) => s.player_id === me.id || s.sub_id === me.id);
   if (me) cwMatches.sort((a, b) => Number(hasMe(b)) - Number(hasMe(a)));
 
+  // Everyone usually has the same number of weeks, so only call it out for a player who differs.
+  const wkCounts = new Map<number, number>();
+  for (const r of rows) wkCounts.set(r.weeksPlayed, (wkCounts.get(r.weeksPlayed) ?? 0) + 1);
+  const usualWeeks = [...wkCounts].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0]?.[0];
+
   return (
     <div className="stack">
       <div>
@@ -47,7 +52,6 @@ export default async function StandingsPage() {
                 <th className="num">#</th>
                 <th>Player</th>
                 <th className="num">Total</th>
-                <th className="num">Wks</th>
                 <th className="num">Avg</th>
                 <th className="num hide-sm">High</th>
               </tr>
@@ -60,8 +64,12 @@ export default async function StandingsPage() {
                     <Link href={`/players/${r.player.id}`}>{displayName(r.player)}</Link>
                   </td>
                   <td className="num"><strong>{r.total}</strong></td>
-                  <td className="num">{r.weeksPlayed}</td>
-                  <td className="num">{fmtAvg(r.average)}</td>
+                  <td className="num">
+                    {fmtAvg(r.average)}
+                    {r.weeksPlayed !== usualWeeks && r.weeksPlayed > 0 && (
+                      <span className="wk-note">{r.weeksPlayed} {r.weeksPlayed === 1 ? "wk" : "wks"}</span>
+                    )}
+                  </td>
                   <td className="num hide-sm">{r.high ?? "–"}</td>
                 </tr>
               ))}

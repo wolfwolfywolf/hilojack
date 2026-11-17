@@ -394,3 +394,4 @@ header.top .wrap > nav { order: 3; }
 .by-player select { width: 100%; padding: 6px; }
 .by-player li.has-sub { background: var(--gold-tint); margin: 0 -8px; padding: 7px 8px; border-radius: 6px; }
 .by-player .bp-table { display: block; font-weight: 400; font-size: 0.8rem; color: var(--muted); }
+.standings .wk-note { display: block; font-size: 0.72rem; color: var(--muted); line-height: 1.1; }
