@@ -90,7 +90,7 @@ export default async function StandingsPage() {
         <section>
           <h2>Subs</h2>
           <p className="muted small" style={{ marginTop: 0 }}>
-            This list only shows subs who have already played this season. Other subs are available too. Ask a league manager.
+            This list only shows subs who have already played this season. Everyone on the league&apos;s sub list is available. Use that list to contact them.
           </p>
           <div className="table-scroll card" style={{ padding: 0 }}>
             <table>
