@@ -3,6 +3,7 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { db } from "./db";
 import type { MatchRow, OffDate, Player, Settings, Slot, WeekInfo } from "./types";
+import type { TieWinner } from "./tourney";
 
 const SLOT_ORDER: [Slot["side"], Slot["seat"]][] = [
   ["A", 1],
@@ -14,7 +15,8 @@ const SLOT_ORDER: [Slot["side"], Slot["seat"]][] = [
 async function getSettingsRaw(): Promise<Settings> {
   const sql = await db();
   const [s] = await sql<Settings[]>`
-    select league_name, season_name, num_weeks, sub_credit, playoff_size, announcement, rules, show_photos
+    select league_name, season_name, num_weeks, sub_credit, playoff_size, announcement, rules, show_photos, tourney_live,
+           array[to_char(tourney_date1, 'YYYY-MM-DD'), to_char(tourney_date2, 'YYYY-MM-DD'), to_char(tourney_date3, 'YYYY-MM-DD')] as tourney_dates
     from settings where id = 1`;
   return s;
 }
@@ -35,16 +37,36 @@ async function getWeeksRaw(): Promise<WeekInfo[]> {
     from weeks order by week_no`;
 }
 
+type SlotRow = { id: number; week_no: number; table_no: number; side: Slot["side"] | null; seat: number | null;
+  player_id: number | null; sub_id: number | null; score: number | null; adjust: number | null; no_show: boolean | null };
+
 async function getMatchesRaw(weekNo?: number): Promise<MatchRow[]> {
   const sql = await db();
-  const rows = await sql<
-    { id: number; week_no: number; table_no: number; side: Slot["side"] | null; seat: number | null;
-      player_id: number | null; sub_id: number | null; score: number | null; adjust: number | null; no_show: boolean | null }[]
-  >`
+  const rows = await sql<SlotRow[]>`
     select m.id, m.week_no, m.table_no, s.side, s.seat, s.player_id, s.sub_id, s.score, s.adjust, s.no_show
     from matches m left join match_slots s on s.match_id = m.id
     ${weekNo != null ? sql`where m.week_no = ${weekNo}` : sql``}
     order by m.week_no, m.table_no`;
+  return toMatchRows(rows);
+}
+
+/** Tournament tables in the same shape as league tables; week_no holds the round number. */
+async function getTourneyTablesRaw(): Promise<MatchRow[]> {
+  const sql = await db();
+  const rows = await sql<SlotRow[]>`
+    select t.id, t.round_no as week_no, t.table_no, s.side, s.seat, s.player_id, s.sub_id, s.score,
+           null::int as adjust, false as no_show
+    from tourney_tables t left join tourney_seats s on s.table_id = t.id
+    order by t.round_no, t.table_no`;
+  return toMatchRows(rows);
+}
+
+async function getTieWinnersRaw(): Promise<TieWinner[]> {
+  const sql = await db();
+  return sql<TieWinner[]>`select cut_after, player_id from tourney_tie_winners order by cut_after, player_id`;
+}
+
+function toMatchRows(rows: SlotRow[]): MatchRow[] {
   const byId = new Map<number, MatchRow>();
   for (const r of rows) {
     let m = byId.get(r.id);
@@ -100,3 +122,5 @@ export const getWeeks = cache(shared(getWeeksRaw, "weeks"));
 export const getMatches = cache(shared(getMatchesRaw, "matches"));
 export const getOffDates = cache(shared(getOffDatesRaw, "off-dates"));
 export const getLeague = cache(getLeagueRaw);
+export const getTourneyTables = cache(shared(getTourneyTablesRaw, "tourney-tables"));
+export const getTieWinners = cache(shared(getTieWinnersRaw, "tourney-ties"));

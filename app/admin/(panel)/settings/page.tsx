@@ -18,15 +18,9 @@ export default async function SettingsAdmin({ searchParams }: { searchParams: Se
           <label htmlFor="season_name">Season</label>
           <input id="season_name" name="season_name" defaultValue={s.season_name} />
         </div>
-        <div className="row">
-          <div className="field" style={{ flex: 1 }}>
-            <label htmlFor="num_weeks">Weeks in the regular season</label>
-            <input id="num_weeks" name="num_weeks" type="number" min={1} max={52} defaultValue={s.num_weeks} />
-          </div>
-          <div className="field" style={{ flex: 1 }}>
-            <label htmlFor="playoff_size">Players in the playoffs</label>
-            <input id="playoff_size" name="playoff_size" type="number" min={2} max={64} defaultValue={s.playoff_size} />
-          </div>
+        <div className="field">
+          <label htmlFor="num_weeks">Weeks in the regular season</label>
+          <input id="num_weeks" name="num_weeks" type="number" min={1} max={52} defaultValue={s.num_weeks} />
         </div>
         <div className="field">
           <label htmlFor="sub_credit">When a sub plays for someone</label>

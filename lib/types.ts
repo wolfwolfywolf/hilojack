@@ -7,6 +7,10 @@ export interface Settings {
   announcement: string;
   rules: string;
   show_photos: boolean;
+  /** Players can see the tournament (otherwise the Playoffs page says "To be determined"). */
+  tourney_live: boolean;
+  /** Dates of tournament nights 1-3 (YYYY-MM-DD), null = not set yet. */
+  tourney_dates: (string | null)[];
 }
 
 export interface Player {

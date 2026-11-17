@@ -424,3 +424,18 @@ label.noshow:has(input:checked) { color: var(--err); font-weight: 700; }
 .playoffs section > p.muted { margin: 0 0 8px; }
 .playoffs section ul { margin: 0; padding-left: 1.2em; }
 .playoffs section li { margin: 4px 0; line-height: 1.45; }
+
+/* Year-end tournament */
+tr.out-row td { color: var(--muted); }
+tr.out-row a { color: var(--muted); }
+.rounds-list { list-style: none; margin: 0; padding: 0; }
+.rounds-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.rounds-list li:last-child { border-bottom: none; }
+.rounds-list .r-actions { display: flex; gap: 8px; }
+.rounds-list .r-actions .btn { padding: 8px 14px; }
+.tie-pick label { display: flex; gap: 8px; align-items: center; color: var(--text); font-size: 1rem; padding: 6px 0; margin: 0; }
+.seat-edit .slot { display: grid; grid-template-columns: 2rem 1fr; gap: 6px; align-items: center; margin-bottom: 6px; }
+.seat-edit select { width: 100%; padding: 6px; }
+.seat-edit .pos { font-size: 0.8rem; color: var(--muted); font-weight: 700; }
+.seat-edit hr { border: none; border-top: 1px dashed var(--border); margin: 8px 0; }
+.seed-list { columns: 2 220px; margin: 8px 0 0; padding-left: 2.2em; }

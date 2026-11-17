@@ -3,7 +3,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { LEAGUE_TAG } from "./league";
+import { LEAGUE_TAG, getPlayers } from "./league";
+import { loadTourney } from "./tourneyData";
+import { earlyRoundTables } from "./tourney";
+import { displayName } from "./standings";
 import { COOKIE, COOKIE_MAX_AGE, checkPassword, tokenFor, tokenValid, type Role } from "./auth";
 import { db } from "./db";
 import { generateSchedule, scheduleStats } from "./schedule";
@@ -338,9 +341,7 @@ export async function deleteMatch(fd: FormData) {
 export async function saveSettings(fd: FormData) {
   await requireAdmin();
   const weeks = intOrNull(fd, "num_weeks");
-  const playoff = intOrNull(fd, "playoff_size");
   if (weeks == null || weeks < 1 || weeks > 52) back("/admin/settings", "err", "Weeks must be between 1 and 52.");
-  if (playoff == null || playoff < 2 || playoff > 64) back("/admin/settings", "err", "Playoff size must be between 2 and 64.");
   const subCredit = str(fd, "sub_credit") === "none" ? "none" : "scheduled";
   const sql = await db();
   await sql`
@@ -349,7 +350,6 @@ export async function saveSettings(fd: FormData) {
       season_name = ${str(fd, "season_name")},
       num_weeks = ${weeks},
       sub_credit = ${subCredit},
-      playoff_size = ${playoff},
       announcement = ${str(fd, "announcement")},
       rules = ${str(fd, "rules")}
     where id = 1`;
@@ -363,6 +363,9 @@ export async function resetSeason(fd: FormData) {
   const sql = await db();
   await sql`delete from weeks`;
   await sql`delete from off_dates`;
+  await sql`delete from tourney_tables`;
+  await sql`delete from tourney_tie_winners`;
+  await sql`update settings set tourney_live = false, tourney_date1 = null, tourney_date2 = null, tourney_date3 = null where id = 1`;
   refreshAll();
   back("/admin/settings", "msg", "Schedule and scores cleared. Players were kept.");
 }
@@ -502,4 +505,140 @@ export async function deletePhoto(fd: FormData) {
   await sql`delete from player_photos where player_id = ${id}`;
   refreshAll();
   back(`/admin/players/${id}`, "msg", "Photo removed.");
+}
+
+// ---------- year-end tournament ----------
+
+const TOURNEY = "/admin/tournament";
+const isDate = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d);
+
+export async function setTourneyLive(fd: FormData) {
+  await requireAdmin();
+  const live = str(fd, "live") === "1";
+  const sql = await db();
+  await sql`update settings set tourney_live = ${live} where id = 1`;
+  refreshAll();
+  back(TOURNEY, "msg", live ? "Players can now see the tournament on the Playoffs page." : "Players see \"To be determined\" again.");
+}
+
+export async function saveTourneyDates(fd: FormData) {
+  await requireAdmin();
+  const d = [1, 2, 3].map((i) => str(fd, `date${i}`)).map((x) => (isDate(x) ? x : null));
+  const sql = await db();
+  await sql`update settings set tourney_date1 = ${d[0]}, tourney_date2 = ${d[1]}, tourney_date3 = ${d[2]} where id = 1`;
+  refreshAll();
+  back(TOURNEY, "msg", "Tournament dates saved.");
+}
+
+/** Replace a round's tables with the given seating (table 1, 2, ...). */
+async function writeRound(round: number, seating: (number | null)[][]) {
+  const sql = await db();
+  await sql.begin(async (tx) => {
+    await tx`delete from tourney_tables where round_no = ${round} and table_no > ${seating.length}`;
+    for (const [i, seats] of seating.entries()) {
+      const [t] = await tx<{ id: number }[]>`
+        insert into tourney_tables (round_no, table_no) values (${round}, ${i + 1})
+        on conflict (round_no, table_no) do update set table_no = excluded.table_no
+        returning id`;
+      for (const [j, pos] of ["A1", "A2", "B1", "B2"].entries()) {
+        const player = seats[j] ?? null;
+        await tx`
+          insert into tourney_seats (table_id, side, seat, player_id)
+          values (${t.id}, ${pos[0]}, ${Number(pos[1])}, ${player})
+          on conflict (table_id, side, seat) do update set
+            sub_id = case when tourney_seats.player_id is distinct from excluded.player_id then null else tourney_seats.sub_id end,
+            player_id = excluded.player_id`;
+      }
+    }
+  });
+}
+
+/** Rounds 1-3: seat everyone from the final season standings. Round 7: the two Round 6 winning teams. */
+export async function fillRound(fd: FormData) {
+  await requireAdmin();
+  const round = intOrNull(fd, "round") ?? 0;
+  const path = `${TOURNEY}/${round}`;
+  const { tables, seeds, state } = await loadTourney();
+  if (tables.some((t) => t.week_no === round && t.slots.some((s) => s.score != null)))
+    back(path, "err", `Round ${round} already has scores, so its tables were not changed. Move players by hand below.`);
+  let seating: number[][] | null = null;
+  if (round >= 1 && round <= 3) {
+    seating = earlyRoundTables(seeds, round as 1 | 2 | 3);
+    if (!seating) back(path, "err", `The standings have ${seeds.length} players. Filling the tables needs a number that divides by 4, so set them by hand.`);
+  } else if (round === 7) {
+    if (!state.finalPairs) back(path, "err", "Enter both Round 6 scores first. The winning teams go to the final.");
+    seating = [state.finalPairs!];
+  } else back(path, "err", "This round is set by hand for now.");
+  await writeRound(round, seating!);
+  refreshAll();
+  back(path, "msg", `Round ${round} tables are set.`);
+}
+
+/** Managers place players at each table by hand (used for Rounds 4-6 until the league's pattern is known). */
+export async function saveRoundSeats(fd: FormData) {
+  await requireAdmin();
+  const round = intOrNull(fd, "round") ?? 0;
+  const count = intOrNull(fd, "table_count") ?? 0;
+  const path = `${TOURNEY}/${round}`;
+  if (round < 1 || round > 7 || count < 1 || count > 20) back(TOURNEY, "err", "Missing round.");
+  const seating = Array.from({ length: count }, (_, i) => ["A1", "A2", "B1", "B2"].map((pos) => intOrNull(fd, `p_${i + 1}_${pos}`)));
+  const seen = new Map<number, number>();
+  for (const id of seating.flat()) if (id != null) seen.set(id, (seen.get(id) ?? 0) + 1);
+  const twice = [...seen].filter(([, c]) => c > 1).map(([id]) => id);
+  if (twice.length) {
+    const players = await getPlayers();
+    const names = twice.map((id) => displayName(players.find((p) => p.id === id)));
+    back(path, "err", `${names.join(", ")} ${twice.length === 1 ? "is" : "are"} at more than one table. Nothing was saved.`);
+  }
+  await writeRound(round, seating);
+  refreshAll();
+  back(path, "msg", `Round ${round} tables saved.`);
+}
+
+/** One table's pair points and subs for a tournament round. */
+export async function saveTourneyTable(fd: FormData) {
+  await requireAdmin();
+  const round = intOrNull(fd, "round");
+  const id = intOrNull(fd, "table_id");
+  const tableNo = intOrNull(fd, "table_no");
+  if (round == null || id == null) back(TOURNEY, "err", "Missing table.");
+  const path = `${TOURNEY}/${round}/scores`;
+  for (const side of ["A", "B"]) {
+    const v = str(fd, `score_${side}`);
+    if (v !== "" && !/^\d{1,3}$/.test(v)) back(`${path}?t=${tableNo}`, "err", "Points must be a whole number, like 9. Nothing was saved.");
+  }
+  const sql = await db();
+  await sql.begin(async (tx) => {
+    for (const pos of ["A1", "A2", "B1", "B2"]) {
+      const score = intOrNull(fd, `score_${pos[0]}`);
+      const sub = intOrNull(fd, `sub_${pos}`);
+      await tx`
+        insert into tourney_seats (table_id, side, seat, sub_id, score)
+        values (${id}, ${pos[0]}, ${Number(pos[1])}, ${sub}, ${score})
+        on conflict (table_id, side, seat) do update set
+          sub_id = case when excluded.sub_id = tourney_seats.player_id then null else excluded.sub_id end,
+          score = excluded.score`;
+    }
+  });
+  refreshAll();
+  back(`${path}?after=${tableNo}`, "msg", `Table ${tableNo} saved.`);
+}
+
+/** Who won the head-to-head playoff game for a tie at a cut line. */
+export async function saveTieWinners(fd: FormData) {
+  await requireAdmin();
+  const after = intOrNull(fd, "cut_after");
+  if (after == null || ![3, 4, 5].includes(after)) back(TOURNEY, "err", "Missing cut.");
+  const winners = fd.getAll("winner").map(Number).filter(Number.isInteger);
+  const { state } = await loadTourney();
+  const tie = state.cuts.find((c) => c.after === after)?.tie;
+  if (tie && winners.length !== tie.spots)
+    back(TOURNEY, "err", `Pick exactly ${tie.spots} ${tie.spots === 1 ? "winner" : "players who move on"}. Nothing was saved.`);
+  const sql = await db();
+  await sql.begin(async (tx) => {
+    await tx`delete from tourney_tie_winners where cut_after = ${after}`;
+    for (const id of winners) await tx`insert into tourney_tie_winners (cut_after, player_id) values (${after}, ${id})`;
+  });
+  refreshAll();
+  back(TOURNEY, "msg", "Playoff game result saved.");
 }

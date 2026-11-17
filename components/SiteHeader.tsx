@@ -40,6 +40,7 @@ export async function SiteHeader() {
               {cw != null && <NavLink href={`/admin/week/${cw}/scores`} match="/admin/week/" className="pill primary">Enter scores</NavLink>}
               <NavLink href="/admin/schedule" match="/admin/schedule" className="pill">Schedule &amp; scores</NavLink>
               <NavLink href="/admin/players" match="/admin/players" className="pill">Players</NavLink>
+              <NavLink href="/admin/tournament" match="/admin/tournament" className="pill">Tournament</NavLink>
               <NavLink href="/admin/settings" match="/admin/settings" className="pill">Settings</NavLink>
             </nav>
           </div>

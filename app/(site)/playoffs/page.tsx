@@ -1,72 +1,156 @@
+import Link from "next/link";
+import { cookies } from "next/headers";
+import { isAdminViewer } from "@/components/SiteHeader";
+import { MatchCard } from "@/components/MatchCard";
+import { TourneyRules } from "@/components/TourneyRules";
+import { Flash, one, type SearchParams } from "@/components/Flash";
+import { fmtDate } from "@/components/format";
+import { loadTourney } from "@/lib/tourneyData";
+import { ROUNDS, gamesIn, nightOf, roundComplete, type TourneyRow } from "@/lib/tourney";
+import { displayName } from "@/lib/standings";
+
+const status = (r: TourneyRow) =>
+  r.place ?? (r.inTieGame ? "Tie game" : r.outAfter != null ? `Out after Round ${r.outAfter}` : "");
+
 /**
- * Year-end tournament rules (from the league's 2026 rules sheet). Matchups and dates are TBD until the
- * league confirms how pairs are set and this season's dates.
+ * Year-end tournament. Players see "To be determined" and the rules until a manager turns the tournament on;
+ * managers always see the live view so they can check it first.
  */
-export default function PlayoffsPage() {
+export default async function PlayoffsPage({ searchParams }: { searchParams: SearchParams }) {
+  const sp = await searchParams;
+  const [t, admin, jar] = await Promise.all([loadTourney(), isAdminViewer(), cookies()]);
+  const { settings, tables, state, byId } = t;
+  const dates = settings.tourney_dates;
+  const show = settings.tourney_live || admin;
+
+  const intro = (
+    <div>
+      <h1>Year-End Tournament</h1>
+      <p className="muted" style={{ margin: 0 }}>
+        7 rounds over 3 nights. Players drop out after each night. Standings are individual: both partners get the
+        team&apos;s points.
+      </p>
+    </div>
+  );
+
+  if (!show)
+    return (
+      <div className="stack playoffs">
+        {intro}
+        <div className="card">
+          <strong>Matchups: to be determined</strong>
+          <p className="muted small" style={{ marginBottom: 0 }}>Partners and tables will be posted here once they are set.</p>
+        </div>
+        <TourneyRules dates={dates} />
+      </div>
+    );
+
+  const meId = Number(jar.get("hlj_me")?.value) || undefined;
+  const seated = ROUNDS.filter((r) => tables.some((x) => x.week_no === r));
+  const asked = Number(one(sp.r));
+  const round = seated.includes(asked as never)
+    ? asked
+    : seated.find((r) => !roundComplete(tables, r)) ?? seated[seated.length - 1];
+  const roundTables = tables.filter((x) => x.week_no === round).sort((a, b) => a.table_no - b.table_no);
+  if (meId) roundTables.sort((a, b) => Number(b.slots.some((s) => s.player_id === meId || s.sub_id === meId)) - Number(a.slots.some((s) => s.player_id === meId || s.sub_id === meId)));
+  const anyScores = tables.some((x) => x.slots.some((s) => s.score != null));
+  const rows = state.rows;
+  const placed = (p: string) => rows.filter((r) => r.place === p).map((r) => displayName(byId.get(r.playerId)));
+  const champs = placed("Champions");
+
   return (
     <div className="stack playoffs">
-      <div>
-        <h1>Year-End Tournament</h1>
-        <p className="muted" style={{ margin: 0 }}>
-          7 rounds over 3 nights. Players drop out after each night. Standings are individual: both partners get the
-          team&apos;s points.
-        </p>
-      </div>
+      {intro}
+      <Flash msg={one(sp.msg)} err={one(sp.err)} />
+      {!settings.tourney_live && (
+        <div className="notice">
+          Managers&apos; preview. Players still see &quot;To be determined&quot;. Turn the tournament on from{" "}
+          <Link href="/admin/tournament">Tournament</Link> when it&apos;s ready.
+        </div>
+      )}
 
-      <div className="card">
-        <strong>Matchups: to be determined</strong>
-        <p className="muted small" style={{ marginBottom: 0 }}>Partners and tables will be posted here once they are set.</p>
-      </div>
+      {champs.length > 0 && (
+        <div className="card myweek">
+          <div className="small muted">Tournament Champions</div>
+          <div className="mw-line" style={{ fontSize: "1.25rem", fontWeight: 700 }}>🏆 {champs.join(" & ")}</div>
+          <div className="small" style={{ marginTop: 6 }}>
+            2nd place: {placed("2nd place").join(" & ")} · 3rd/4th place: {placed("3rd/4th place").join(", ")}
+          </div>
+        </div>
+      )}
 
-      <section className="card">
-        <h2>Night 1 · Rounds 1, 2 &amp; 3</h2>
-        <p className="muted small">Date TBD</p>
-        <ul>
-          <li><strong>Everyone plays.</strong> Partners and seats come from the final season standings (ties go to whoever was higher in Week 16).</li>
-          <li>New partners and opponents each round.</li>
-          <li><strong>3 games to 11</strong>: 2 points per game, 1 per bump, 1 if the opponents are in the hole. No bonus point.</li>
-          <li>After Round 3: <strong>top 20 move on</strong>, the rest are out.</li>
-        </ul>
-      </section>
+      {seated.length === 0 ? (
+        <div className="card">
+          <strong>Tables: to be determined</strong>
+          <p className="muted small" style={{ marginBottom: 0 }}>Partners and tables will be posted here once they are set.</p>
+        </div>
+      ) : (
+        <section>
+          {seated.length > 1 && (
+            <nav className="weeks-nav" aria-label="Rounds">
+              {seated.map((r) => (
+                <Link key={r} href={`/playoffs?r=${r}`} className={r === round ? "on" : undefined} aria-current={r === round ? "true" : undefined}>
+                  Round {r}
+                </Link>
+              ))}
+            </nav>
+          )}
+          <h2>
+            Round {round}
+            {round === 6 && " · Semifinals"}
+            {round === 7 && " · Final"}
+            <span className="muted"> · {dates[nightOf(round) - 1] ? fmtDate(dates[nightOf(round) - 1]) : `Night ${nightOf(round)}`}</span>
+          </h2>
+          <p className="muted small" style={{ marginTop: 0 }}>
+            {gamesIn(round)} games to 11{round <= 3 ? ", no bonus point" : ", bonus point for winning 4 or more"}.
+          </p>
+          <div className="grid">
+            {roundTables.map((m) => (
+              <MatchCard key={m.id} match={m} byId={byId} highlight={meId} />
+            ))}
+          </div>
+        </section>
+      )}
 
-      <section className="card">
-        <h2>Night 2 · Rounds 4 &amp; 5</h2>
-        <p className="muted small">Date TBD</p>
-        <ul>
-          <li><strong>Round 4 (top 20):</strong> partners and seats from the tournament standings after Round 3 (ties go to whoever was higher in the final week).</li>
-          <li>After Round 4 (points from Rounds 1–4): <strong>top 12 move on</strong>.</li>
-          <li><strong>Round 5 (top 12):</strong> new partners and opponents from the standings through Round 4 (ties broken by cutting the cards).</li>
-          <li>After Round 5 (points from Rounds 1–5): <strong>top 8 move on</strong> to the semifinals.</li>
-          <li><strong>5 games to 11</strong>: 2 points per game, 1 per bump, 1 if the opponents are in the hole, plus 1 bonus point for winning 4 or more games.</li>
-        </ul>
-      </section>
+      {anyScores && (
+        <section>
+          <h2>Tournament standings</h2>
+          <div className="table-scroll card" style={{ padding: 0 }}>
+            <table className="standings">
+              <thead>
+                <tr>
+                  <th className="num">#</th>
+                  <th>Player</th>
+                  <th className="num">Pts</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r, i) => {
+                  const p = byId.get(r.playerId);
+                  const prev = rows[i - 1];
+                  const same = prev && prev.total === r.total && prev.outAfter === r.outAfter && prev.place === r.place;
+                  return (
+                    <tr key={r.playerId} className={r.playerId === meId ? "me-row" : r.outAfter != null ? "out-row" : undefined}>
+                      <td className="num">{same ? "" : i + 1}</td>
+                      <td>{p ? <Link href={`/players/${p.id}`}>{displayName(p)}</Link> : "?"}</td>
+                      <td className="num"><strong>{r.total}</strong></td>
+                      <td className="small muted">{status(r)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
-      <section className="card">
-        <h2>Night 3 · Rounds 6 &amp; 7</h2>
-        <p className="muted small">Date TBD</p>
-        <ul>
-          <li><strong>Round 6, semifinals (top 8):</strong> 4 teams in 2 matches, partners and seats from the standings through Round 5. Winning teams go to the final. Losing teams take 3rd and 4th place.</li>
-          <li><strong>Round 7, final:</strong> the same teams as in Round 6. The winner is Tournament Champion.</li>
-          <li>Same scoring as Night 2: 5 games to 11 with the bonus point.</li>
-        </ul>
-      </section>
-
-      <section className="card">
-        <h2>Prizes</h2>
-        <ul>
-          <li>Champions: <strong>$600</strong></li>
-          <li>Second place: <strong>$400</strong></li>
-          <li>3rd and 4th place: <strong>$250</strong> per team</li>
-        </ul>
-      </section>
-
-      <section className="card">
-        <h2>Ties at the cut line</h2>
-        <p style={{ margin: 0 }}>
-          If players are tied for the last spot that moves on (20th, 12th or 8th), they play a single head-to-head playoff
-          game. The winner moves on.
-        </p>
-      </section>
+      <details className="card">
+        <summary><strong>Tournament rules and prizes</strong></summary>
+        <div className="stack" style={{ marginTop: 12 }}>
+          <TourneyRules dates={dates} />
+        </div>
+      </details>
     </div>
   );
 }

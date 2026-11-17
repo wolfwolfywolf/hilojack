@@ -71,6 +71,34 @@ create table if not exists player_photos (
 -- Managers' switch: show player photos to league members (off = only managers see them).
 alter table settings add column if not exists show_photos boolean not null default false;
 
+-- Year-end tournament (lib/tourney.ts). Tables and seats mirror matches/match_slots, by round 1-7.
+create table if not exists tourney_tables (
+  id        serial primary key,
+  round_no  int not null check (round_no between 1 and 7),
+  table_no  int not null,
+  unique (round_no, table_no)
+);
+create table if not exists tourney_seats (
+  table_id  int not null references tourney_tables(id) on delete cascade,
+  side      char(1) not null check (side in ('A', 'B')),
+  seat      int not null check (seat in (1, 2)),
+  player_id int references players(id) on delete set null,
+  sub_id    int references players(id) on delete set null,
+  score     int,  -- the pair's points for the round, same for both partners
+  primary key (table_id, side, seat)
+);
+-- Winners of the head-to-head playoff game when players tie at a cut line (after Round 3, 4 or 5).
+create table if not exists tourney_tie_winners (
+  cut_after int not null check (cut_after in (3, 4, 5)),
+  player_id int not null references players(id) on delete cascade,
+  primary key (cut_after, player_id)
+);
+-- Players see "To be determined" until a manager turns this on. One date per tournament night.
+alter table settings add column if not exists tourney_live boolean not null default false;
+alter table settings add column if not exists tourney_date1 date;
+alter table settings add column if not exists tourney_date2 date;
+alter table settings add column if not exists tourney_date3 date;
+
 -- Lock the tables away from Supabase's public API (anon/authenticated keys).
 -- The app connects as the table owner, which RLS does not restrict.
 alter table settings    enable row level security;
@@ -80,4 +108,7 @@ alter table matches     enable row level security;
 alter table match_slots enable row level security;
 alter table off_dates   enable row level security;
 alter table player_photos enable row level security;
+alter table tourney_tables enable row level security;
+alter table tourney_seats enable row level security;
+alter table tourney_tie_winners enable row level security;
 `;
