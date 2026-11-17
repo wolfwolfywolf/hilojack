@@ -418,3 +418,9 @@ label.noshow:has(input:checked) { color: var(--err); font-weight: 700; }
 .photo-matches li { display: flex; align-items: center; gap: 10px; }
 .photo-matches img { width: 40px; height: 40px; border-radius: 18%; object-fit: cover; }
 .photo-switch { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+
+/* Playoffs / tournament rules */
+.playoffs section h2 { margin: 0 0 2px; font-size: 1.1rem; }
+.playoffs section > p.muted { margin: 0 0 8px; }
+.playoffs section ul { margin: 0; padding-left: 1.2em; }
+.playoffs section li { margin: 4px 0; line-height: 1.45; }
