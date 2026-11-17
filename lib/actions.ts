@@ -2,7 +2,8 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { LEAGUE_TAG } from "./league";
 import { COOKIE, COOKIE_MAX_AGE, checkPassword, tokenFor, tokenValid, type Role } from "./auth";
 import { db } from "./db";
 import { generateSchedule, scheduleStats } from "./schedule";
@@ -32,6 +33,7 @@ async function requireAdmin() {
   if (!(await tokenValid("admin", jar.get(COOKIE.admin)?.value))) redirect("/admin/login");
 }
 function refreshAll() {
+  revalidateTag(LEAGUE_TAG);
   revalidatePath("/", "layout");
 }
 

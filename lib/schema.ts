@@ -1,4 +1,5 @@
-// Database schema. Safe to run repeatedly; the app runs it automatically on first use.
+// Database schema. Safe to run repeatedly. The app applies it once per schema version (see lib/db.ts),
+// so edit this file and deploy; the change is picked up automatically.
 export const SCHEMA_SQL = `
 
 create table if not exists settings (

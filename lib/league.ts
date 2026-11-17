@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { db } from "./db";
 import type { MatchRow, OffDate, Player, Settings, Slot, WeekInfo } from "./types";
 
@@ -82,10 +83,17 @@ async function getLeagueRaw(weekNo?: number) {
   return { settings, players, weeks, matches, offDates };
 }
 
-// One query per request: the layout and the page both ask for settings, etc.
-export const getSettings = cache(getSettingsRaw);
-export const getPlayers = cache(getPlayersRaw);
-export const getWeeks = cache(getWeeksRaw);
-export const getMatches = cache(getMatchesRaw);
-export const getOffDates = cache(getOffDatesRaw);
+/** Every write in lib/actions.ts calls revalidateTag(LEAGUE_TAG), so cached data is never stale after a save. */
+export const LEAGUE_TAG = "league";
+// Keep league data in Next's data cache between requests (shared by all server instances on Vercel),
+// so most page loads don't touch the database at all. Re-checked hourly as a safety net.
+const shared = <A extends unknown[], R>(fn: (...a: A) => Promise<R>, key: string) =>
+  unstable_cache(fn, [key], { tags: [LEAGUE_TAG], revalidate: 3600 });
+
+// And dedupe within one request: the layout and the page both ask for settings, etc.
+export const getSettings = cache(shared(getSettingsRaw, "settings"));
+export const getPlayers = cache(shared(getPlayersRaw, "players"));
+export const getWeeks = cache(shared(getWeeksRaw, "weeks"));
+export const getMatches = cache(shared(getMatchesRaw, "matches"));
+export const getOffDates = cache(shared(getOffDatesRaw, "off-dates"));
 export const getLeague = cache(getLeagueRaw);
