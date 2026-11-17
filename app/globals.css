@@ -375,8 +375,7 @@ header.top .wrap > nav { order: 3; }
 .match .team-B { text-align: right; }
 .match .team .sub { display: block; font-size: 0.78rem; color: var(--muted); }
 .match .team .sub a { color: var(--muted); }
-.match .team-score { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.match .team-B .team-score { flex-direction: row-reverse; justify-content: flex-start; }
+.match .team-score { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .match .team-score .pts, .match .team-score .high-score { font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
 .match .team.win .pts { color: var(--brand); }
 .match .team.lose .pts { color: var(--muted); }
