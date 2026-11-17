@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { getPlayers } from "@/lib/league";
-import { addPlayers } from "@/lib/actions";
+import { getPlayers, getSettings } from "@/lib/league";
+import { addPlayers, setShowPhotos } from "@/lib/actions";
 import { displayName } from "@/lib/standings";
 import { Flash, one, type SearchParams } from "@/components/Flash";
 import type { Player } from "@/lib/types";
@@ -22,7 +22,7 @@ function NameList({ players }: { players: Player[] }) {
 /** Compact list of names; tap one to edit that player. */
 export default async function PlayersAdmin({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
-  const players = await getPlayers();
+  const [players, settings] = await Promise.all([getPlayers(), getSettings()]);
   const regulars = players.filter((p) => !p.is_sub && p.active);
   const subs = players.filter((p) => p.is_sub && p.active);
   const inactive = players.filter((p) => !p.active);
@@ -43,6 +43,19 @@ export default async function PlayersAdmin({ searchParams }: { searchParams: Sea
           </div>
         </form>
       </details>
+
+      <form action={setShowPhotos} className="card photo-switch">
+        <label className="inline-check">
+          <input type="checkbox" name="show_photos" defaultChecked={settings.show_photos} />
+          <strong>Show photos to players</strong>
+        </label>
+        <button type="submit" className="secondary">Save</button>
+        <p className="muted small" style={{ margin: 0, flexBasis: "100%" }}>
+          {settings.show_photos
+            ? "On: players see photos on player pages and the name picker."
+            : "Off: only managers see photos. Players see the site exactly as before."}
+        </p>
+      </form>
 
       <details className="card add-players">
         <summary>Add photos</summary>

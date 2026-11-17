@@ -417,3 +417,4 @@ label.noshow:has(input:checked) { color: var(--err); font-weight: 700; }
 .photo-matches { list-style: none; padding: 0; margin: 12px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
 .photo-matches li { display: flex; align-items: center; gap: 10px; }
 .photo-matches img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.photo-switch { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }

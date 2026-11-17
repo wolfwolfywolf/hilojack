@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { getPlayers } from "@/lib/league";
+import { getPlayers, getSettings } from "@/lib/league";
 import { pickMe } from "@/lib/actions";
 import { displayName } from "@/lib/standings";
 import { one, type SearchParams } from "@/components/Flash";
@@ -15,7 +15,7 @@ export default async function PickMe({ searchParams }: { searchParams: SearchPar
     { title: "League players", list: all.filter((p) => !p.is_sub) },
     { title: "Subs", list: all.filter((p) => p.is_sub) },
   ].filter((g) => g.list.length);
-  const anyPhotos = all.some((p) => p.photo_v);
+  const anyPhotos = (await getSettings()).show_photos && all.some((p) => p.photo_v);
   return (
     <div className="pick-me">
       <h1>Who are you?</h1>

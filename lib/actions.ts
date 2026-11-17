@@ -485,6 +485,16 @@ export async function savePhotos(fd: FormData): Promise<{ saved: number; errors:
   return { saved, errors };
 }
 
+/** The managers' "Show photos to players" switch. */
+export async function setShowPhotos(fd: FormData) {
+  await requireAdmin();
+  const on = str(fd, "show_photos") === "on";
+  const sql = await db();
+  await sql`update settings set show_photos = ${on} where id = 1`;
+  refreshAll();
+  back("/admin/players", "msg", on ? "Photos are now shown to players." : "Photos are now hidden from players.");
+}
+
 export async function deletePhoto(fd: FormData) {
   await requireAdmin();
   const id = intOrNull(fd, "id");

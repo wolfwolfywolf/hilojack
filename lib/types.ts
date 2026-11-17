@@ -6,6 +6,7 @@ export interface Settings {
   playoff_size: number;
   announcement: string;
   rules: string;
+  show_photos: boolean;
 }
 
 export interface Player {

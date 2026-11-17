@@ -14,7 +14,7 @@ const SLOT_ORDER: [Slot["side"], Slot["seat"]][] = [
 async function getSettingsRaw(): Promise<Settings> {
   const sql = await db();
   const [s] = await sql<Settings[]>`
-    select league_name, season_name, num_weeks, sub_credit, playoff_size, announcement, rules
+    select league_name, season_name, num_weeks, sub_credit, playoff_size, announcement, rules, show_photos
     from settings where id = 1`;
   return s;
 }

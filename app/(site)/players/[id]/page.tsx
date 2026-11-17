@@ -47,7 +47,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
             player.is_sub && <p className="muted" style={{ margin: 0 }}>Sub</p>
           )}
         </div>
-        {player.photo_v ? <Avatar player={player} size={64} /> : null}
+        {settings.show_photos && player.photo_v ? <Avatar player={player} size={64} /> : null}
       </div>
       <div className="table-scroll card" style={{ padding: 0 }}>
         <table className="stack-sm">

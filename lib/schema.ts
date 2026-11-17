@@ -68,6 +68,9 @@ create table if not exists player_photos (
   updated_at timestamptz not null default now()
 );
 
+-- Managers' switch: show player photos to league members (off = only managers see them).
+alter table settings add column if not exists show_photos boolean not null default false;
+
 -- Lock the tables away from Supabase's public API (anon/authenticated keys).
 -- The app connects as the table owner, which RLS does not restrict.
 alter table settings    enable row level security;
