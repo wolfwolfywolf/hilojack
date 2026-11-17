@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLeague } from "@/lib/league";
 import { saveTable } from "@/lib/actions";
-import { displayName } from "@/lib/standings";
+import { displayName, subLabel, subStats } from "@/lib/standings";
 import { Flash, one, type SearchParams } from "@/components/Flash";
 import type { MatchRow } from "@/lib/types";
 
@@ -25,6 +25,7 @@ export default async function ScoreEntry({
   const ms = matches.filter((m) => m.week_no === n).sort((a, b) => a.table_no - b.table_no);
   const byId = new Map(players.map((p) => [p.id, p]));
   const subs = players.filter((p) => p.is_sub && p.active);
+  const subStatById = new Map(subStats(players, matches).map((s) => [s.sub.id, s]));
   const entered = ms.filter(done).length;
   const prev = weeks.find((w) => w.week_no === n - 1);
   const next = weeks.find((w) => w.week_no === n + 1);
@@ -142,7 +143,7 @@ export default async function ScoreEntry({
                   <div className="extra-name">{p ? displayName(p) : "TBD"}</div>
                   <select name={`sub_${pos}`} defaultValue={s.sub_id ?? ""} aria-label={`Sub for ${displayName(p)}`}>
                     <option value="">No sub</option>
-                    {subs.map((x) => <option key={x.id} value={x.id}>{displayName(x)}</option>)}
+                    {subs.map((x) => <option key={x.id} value={x.id}>{subLabel(x, subStatById)}</option>)}
                   </select>
                   <select name={`adjust_${pos}`} defaultValue={s.adjust ?? ""} aria-label={`+/− for ${displayName(p)}`}>
                     <option value="">+/−</option>

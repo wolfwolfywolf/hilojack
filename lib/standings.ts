@@ -84,6 +84,37 @@ export function subAppearances(players: Player[], matches: MatchRow[]): SubAppea
   return out.sort((a, b) => a.week_no - b.week_no);
 }
 
+export interface SubStat {
+  sub: Player;
+  nights: number;
+  total: number;
+  average: number;
+  high: number;
+}
+
+/** How each sub has done on nights they filled in (pair score for that night). Only subs with a score are listed. */
+export function subStats(players: Player[], matches: MatchRow[]): SubStat[] {
+  const byId = new Map(players.map((p) => [p.id, p]));
+  const scores = new Map<number, number[]>();
+  for (const m of matches)
+    for (const s of m.slots)
+      if (s.sub_id != null && s.score != null) scores.set(s.sub_id, [...(scores.get(s.sub_id) ?? []), s.score]);
+  return [...scores]
+    .filter(([id]) => byId.has(id))
+    .map(([id, xs]) => {
+      const total = xs.reduce((a, b) => a + b, 0);
+      return { sub: byId.get(id)!, nights: xs.length, total, average: total / xs.length, high: Math.max(...xs) };
+    })
+    .sort((a, b) => b.average - a.average || b.nights - a.nights || displayName(a.sub).localeCompare(displayName(b.sub)));
+}
+
+/** "Evans, R. · 3 nights, avg 9.7" for sub pickers, so managers see how a sub has done. */
+export function subLabel(p: Player, stats: Map<number, SubStat>): string {
+  const st = stats.get(p.id);
+  if (!st) return `${displayName(p)} · no games yet`;
+  return `${displayName(p)} · ${st.nights} night${st.nights === 1 ? "" : "s"}, avg ${st.average.toFixed(1)}`;
+}
+
 /** Week whose scores are not all in yet, or the last week if all are done. */
 export function currentWeek(weeks: number[], matches: MatchRow[]): number | null {
   if (!weeks.length) return null;

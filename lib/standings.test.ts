@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { computeStandings, displayName } from "./standings.ts";
+import { computeStandings, displayName, subStats } from "./standings.ts";
 import type { MatchRow, Player } from "./types.ts";
 
 const P = (id: number, last: string, is_sub = false): Player => ({
@@ -54,4 +54,19 @@ test("no-show penalties via adjustments", () => {
   const rows = computeStandings(players, [m], { sub_credit: "scheduled" });
   const t = (id: number) => rows.find((r) => r.player.id === id)!.total;
   assert.deepEqual([t(1), t(2), t(3), t(4)], [3, -2, 6, 6]);
+});
+
+test("subStats lists only subs who have a score, with nights, total, average and high", () => {
+  const ms = [
+    match(1, [[1, null, 5], [2, null, 5], [3, 9, 8], [4, null, 8]]),
+    match(2, [[1, 9, 12], [2, null, 12], [3, null, 4], [4, null, 4]]),
+    match(3, [[1, 9, null], [2, null, null], [3, null, null], [4, null, null]]), // scheduled, not yet scored
+  ];
+  const ps = [...players, P(10, "Unused", true)];
+  const stats = subStats(ps, ms);
+  assert.equal(stats.length, 1);
+  assert.deepEqual(
+    { name: stats[0].sub.last_name, nights: stats[0].nights, total: stats[0].total, average: stats[0].average, high: stats[0].high },
+    { name: "Sub", nights: 2, total: 20, average: 10, high: 12 },
+  );
 });

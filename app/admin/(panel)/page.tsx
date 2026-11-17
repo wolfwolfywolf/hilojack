@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getLeague } from "@/lib/league";
 import { currentWeek } from "@/lib/standings";
 
@@ -12,6 +13,8 @@ export default async function AdminHome() {
     { done: weeks.length > 0, text: <>Make the {settings.num_weeks}-week schedule on <Link href="/admin/schedule">Schedule &amp; scores</Link>.</> },
     { done: weeks.some((w) => w.play_date), text: <>Set the first league night so every week gets a date.</> },
   ];
+  // Once the league is set up, managers just use the normal site with the Managers row.
+  if (steps.every((s) => s.done)) redirect("/");
   return (
     <div className="stack">
       <h1>{settings.league_name}</h1>

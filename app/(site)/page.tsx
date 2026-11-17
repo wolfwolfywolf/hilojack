@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { MyWeek } from "@/components/MyWeek";
 import { getLeague } from "@/lib/league";
-import { computeStandings, currentWeek, displayName, subAppearances, weekHigh } from "@/lib/standings";
+import { computeStandings, currentWeek, displayName, subStats, weekHigh } from "@/lib/standings";
 import { MatchCard } from "@/components/MatchCard";
 import { fmtAvg, fmtDate, allOffDates } from "@/components/format";
 
@@ -16,7 +16,7 @@ export default async function StandingsPage() {
   const weeksScored = new Set(
     matches.filter((m) => m.slots.some((s) => s.score != null)).map((m) => m.week_no),
   ).size;
-  const subs = subAppearances(players, matches);
+  const subs = subStats(players, matches);
   const high = cw != null ? weekHigh(matches, cw) : null;
   const meId = Number((await cookies()).get("hlj_me")?.value);
   const me = players.find((p) => p.id === meId);
@@ -88,28 +88,33 @@ export default async function StandingsPage() {
 
       {subs.length > 0 && (
         <section>
-          <h2>Sub appearances</h2>
+          <h2>Subs</h2>
+          <p className="muted small" style={{ marginTop: 0 }}>
+            This list only shows subs who have already played this season. Everyone on the league&apos;s sub list is available. Use that list to contact them.
+          </p>
           <div className="table-scroll card" style={{ padding: 0 }}>
             <table>
               <thead>
-                <tr><th className="num">Wk</th><th>Sub</th><th>Played for</th><th className="num">Score</th></tr>
+                <tr><th>Sub</th><th className="num">Nights</th><th className="num">Total</th><th className="num">Avg</th><th className="num">High</th></tr>
               </thead>
               <tbody>
-                {subs.map((s, i) => (
-                  <tr key={i}>
-                    <td className="num">{s.week_no}</td>
-                    <td>{displayName(s.sub)}</td>
-                    <td>{displayName(s.forPlayer)}</td>
-                    <td className="num">{s.score ?? "–"}</td>
+                {subs.map((s) => (
+                  <tr key={s.sub.id} className={s.sub.id === me?.id ? "me-row" : undefined}>
+                    <td><Link href={`/players/${s.sub.id}`}>{displayName(s.sub)}</Link></td>
+                    <td className="num">{s.nights}</td>
+                    <td className="num"><strong>{s.total}</strong></td>
+                    <td className="num">{fmtAvg(s.average)}</td>
+                    <td className="num">{s.high}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           <p className="muted small">
+            Each night is the score of the pair the sub played in.{" "}
             {settings.sub_credit === "scheduled"
-              ? "A sub's score counts for the player they replaced."
-              : "A sub's score does not count for the player they replaced."}
+              ? "Those points count for the player they replaced, not the sub."
+              : "Those points don't count for the player they replaced."}
           </p>
         </section>
       )}
