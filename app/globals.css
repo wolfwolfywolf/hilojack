@@ -94,9 +94,9 @@ tr.hl td { background: var(--highlight); }
 .match .pscore { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 6px; font-size: 0.85rem; }
 .me { background: var(--gold); color: var(--gold-ink); border-radius: 5px; padding: 1px 5px; font-weight: 700; text-decoration: none; }
 .match.mine { border: 2px solid var(--gold); background: var(--gold-tint); }
-table.standings tr.me-row td { background: var(--gold-tint); font-weight: 700; }
-table.standings tr.me-row td:first-child { box-shadow: inset 5px 0 0 var(--gold); }
-table.standings tr.me-row a { color: var(--text); }
+tr.me-row td { background: var(--gold-tint); font-weight: 700; }
+tr.me-row td:first-child { box-shadow: inset 5px 0 0 var(--gold); }
+tr.me-row a { color: var(--text); }
 
 .weeks-nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 16px; }
 .weeks-nav a { min-width: 2.25rem; text-align: center; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; text-decoration: none; background: var(--surface); color: var(--text); }

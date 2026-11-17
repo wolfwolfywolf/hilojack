@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLeague } from "@/lib/league";
 import { addMatch, deleteMatch, saveWeek } from "@/lib/actions";
-import { displayName } from "@/lib/standings";
+import { displayName, subLabel, subStats } from "@/lib/standings";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { Flash, one, type SearchParams } from "@/components/Flash";
 
@@ -21,6 +21,7 @@ export default async function WeekAdmin({
   const ms = matches.filter((m) => m.week_no === n);
   const regulars = players.filter((p) => !p.is_sub);
   const subs = players.filter((p) => p.is_sub && p.active);
+  const subStatById = new Map(subStats(players, matches).map((s) => [s.sub.id, s]));
 
   // Warnings: someone scheduled twice, or an active player missing this week.
   const counts = new Map<number, number>();
@@ -97,7 +98,7 @@ export default async function WeekAdmin({
                       </select>
                       <select className="s-sub" name={`sub_${m.id}_${pos}`} defaultValue={s.sub_id ?? ""} aria-label={`Table ${m.table_no} ${pos} sub`}>
                         <option value="">No sub</option>
-                        {subs.map((p) => <option key={p.id} value={p.id}>{displayName(p)}</option>)}
+                        {subs.map((p) => <option key={p.id} value={p.id}>{subLabel(p, subStatById)}</option>)}
                       </select>
                       {s.seat === 1 ? (
                         <input

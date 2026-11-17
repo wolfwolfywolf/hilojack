@@ -42,7 +42,7 @@ export function MyWeek({
   const dated = weeks.some((w) => w.play_date);
   const upcoming = weeks
     .filter((w) => (dated ? !!w.play_date && w.play_date >= today : week == null || w.week_no >= week))
-    .map((w) => ({ w, m: matches.find((m) => m.week_no === w.week_no && m.slots.some((s) => s.player_id === me.id)) }))
+    .map((w) => ({ w, m: matches.find((m) => m.week_no === w.week_no && m.slots.some((s) => (me.is_sub ? s.sub_id === me.id : s.player_id === me.id))) }))
     .filter((x) => x.m)
     .slice(0, 1);
   const weekEnd = addDays(today, 6);
@@ -54,9 +54,11 @@ export function MyWeek({
   return (
     <section className="card myweek">
       <h2 style={{ margin: 0 }}>{displayName(me)}&apos;s match</h2>
-      {upcoming.length === 0 && <p className="muted">No upcoming matches on the schedule.</p>}
+      {upcoming.length === 0 && (
+        <p className="muted">{me.is_sub ? "You're not scheduled to sub yet. A league manager will add you when someone needs a sub." : "No upcoming matches on the schedule."}</p>
+      )}
       {upcoming.map(({ w, m }) => {
-        const mine = m!.slots.find((s) => s.player_id === me.id)!;
+        const mine = m!.slots.find((s) => (me.is_sub ? s.sub_id === me.id : s.player_id === me.id))!;
         const partner = m!.slots.find((s) => s.side === mine.side && s.seat !== mine.seat)!;
         const opps = m!.slots.filter((s) => s.side !== mine.side);
         return (
@@ -77,7 +79,9 @@ export function MyWeek({
               {offNow ? "Next game" : isThisWeek(w.play_date) ? "This week" : "Your next match"} · Week {w.week_no}
               {w.play_date && ` · ${fmtDate(w.play_date)}`}
             </div>
-            {mine.sub_id != null && (
+            {me.is_sub ? (
+              <div className="mw-line"><strong>Subbing for {displayName(byId.get(mine.player_id ?? -1))}</strong></div>
+            ) : mine.sub_id != null && (
               <div className="warn">Your sub: {displayName(byId.get(mine.sub_id))}</div>
             )}
             <div className="mw-line">Partner: {label(partner.player_id, partner.sub_id)}</div>

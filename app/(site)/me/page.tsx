@@ -9,23 +9,32 @@ export default async function PickMe({ searchParams }: { searchParams: SearchPar
   const sp = await searchParams;
   const next = one(sp.next) ?? "/";
   const meId = Number((await cookies()).get("hlj_me")?.value) || undefined;
-  const players = (await getPlayers()).filter((p) => !p.is_sub && p.active);
+  const all = (await getPlayers()).filter((p) => p.active);
+  const groups = [
+    { title: "League players", list: all.filter((p) => !p.is_sub) },
+    { title: "Subs", list: all.filter((p) => p.is_sub) },
+  ].filter((g) => g.list.length);
   return (
     <div className="pick-me">
       <h1>Who are you?</h1>
       <p className="muted small">Tap your name. This phone will remember it, and your matches and standings row will be highlighted.</p>
       <form action={pickMe}>
         <input type="hidden" name="next" value={next} />
-        <div className="pick-grid">
-          {players.map((p) => (
-            <button key={p.id} type="submit" name="player" value={p.id} className={p.id === meId ? "pick on" : "pick"}>
-              {displayName(p)}
-            </button>
-          ))}
-        </div>
+        {groups.map((g) => (
+          <section key={g.title}>
+            <h2>{g.title}</h2>
+            <div className="pick-grid">
+              {g.list.map((p) => (
+                <button key={p.id} type="submit" name="player" value={p.id} className={p.id === meId ? "pick on" : "pick"}>
+                  {displayName(p)}
+                </button>
+              ))}
+            </div>
+          </section>
+        ))}
         {meId && (
           <p className="small" style={{ marginTop: 16 }}>
-            <button type="submit" name="player" value="" className="link">I&apos;m not a player, clear my name</button>
+            <button type="submit" name="player" value="" className="link">Clear my name from this phone</button>
           </p>
         )}
       </form>
