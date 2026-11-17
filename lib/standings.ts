@@ -1,9 +1,35 @@
-import type { MatchRow, Player, Settings, StandingRow, SubAppearance } from "./types";
+import type { MatchRow, Player, Settings, Slot, StandingRow, SubAppearance } from "./types";
 
 export function displayName(p: Pick<Player, "last_name" | "first_initial"> | null | undefined) {
   if (!p) return "TBD";
   const init = p.first_initial.trim();
   return init ? `${p.last_name}, ${init.charAt(0).toUpperCase()}.` : p.last_name;
+}
+
+/** Penalty and bonuses from the league's no-show / leaving-early rule. */
+export const NO_SHOW = { self: -2, partner: 3, opponents: 6 } as const;
+
+/** True when this seat was a no-show (or left early). A seat with a sub is never a no-show. */
+export const isNoShow = (s: Slot) => s.no_show && s.sub_id == null;
+
+/**
+ * Points a seat earns for the night, before sub crediting rules, or null if nothing is entered yet.
+ * No-show / left early: that player gets -2 and none of the pair's points; a partner who stayed
+ * gets the pair's points + 3; both opponents get their pair's points + 6. A blank pair score counts
+ * as 0 once anyone at the table is marked, since the game may never have been played.
+ */
+export function seatPoints(m: MatchRow, s: Slot): number | null {
+  const anyNoShow = m.slots.some(isNoShow);
+  let pts: number | null;
+  if (isNoShow(s)) pts = NO_SHOW.self;
+  else {
+    const pair = s.score;
+    const partnerOut = m.slots.some((o) => o.side === s.side && o.seat !== s.seat && isNoShow(o));
+    const oppOut = m.slots.some((o) => o.side !== s.side && isNoShow(o));
+    pts = pair == null && !anyNoShow ? null : (pair ?? 0) + (partnerOut ? NO_SHOW.partner : 0) + (oppOut ? NO_SHOW.opponents : 0);
+  }
+  if (s.adjust != null) pts = (pts ?? 0) + s.adjust;
+  return pts;
 }
 
 /** The score each regular player is credited with, per week. */
@@ -15,12 +41,11 @@ export function creditedScores(
   for (const m of matches)
     for (const s of m.slots) {
       if (s.player_id == null) continue;
-      // With sub_credit "none" an absent player keeps only their own adjustment.
-      const counts = s.score != null && !(s.sub_id != null && subCredit === "none");
-      if (!counts && s.adjust == null) continue;
-      const earned = counts ? s.score! : 0;
+      // With sub_credit "none" an absent player keeps only their own old +/- adjustment.
+      const pts = s.sub_id != null && subCredit === "none" ? s.adjust : seatPoints(m, s);
+      if (pts == null) continue;
       const byWeek = out.get(s.player_id) ?? new Map<number, number>();
-      byWeek.set(m.week_no, (byWeek.get(m.week_no) ?? 0) + earned + (s.adjust ?? 0));
+      byWeek.set(m.week_no, (byWeek.get(m.week_no) ?? 0) + pts);
       out.set(s.player_id, byWeek);
     }
   return out;

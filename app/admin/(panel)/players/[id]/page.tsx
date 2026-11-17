@@ -26,7 +26,7 @@ export default async function EditPlayer({
     for (const s of m.slots)
       if (s.player_id === id || s.sub_id === id) {
         scheduled++;
-        if (s.score != null || s.adjust != null) scored++;
+        if (s.score != null || s.adjust != null || s.no_show) scored++;
       }
   const blocked = scored > 0 ? "They have scores, so deleting would change past results." : scheduled > 0 ? "They're on the schedule." : null;
 

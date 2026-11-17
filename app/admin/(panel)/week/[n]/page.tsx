@@ -52,7 +52,8 @@ export default async function WeekAdmin({
       <p className="muted small">
         Change who sits where, pick a sub for anyone who can&apos;t make it, and type in each pair&apos;s points for the night
         (both partners get the same points). Then press Save. Leave points blank until the match is played.
-        Use +/− for one player only, such as a no-show (−2, partner +3) or leaving early.
+        Tick No-show for a player who didn&apos;t show or left early: they get −2, their partner gets the pair&apos;s points +3,
+        and the opponents get their points +6. If someone left early, type the pair&apos;s points so far.
       </p>
       <p><Link href={`/admin/week/${n}/scores`} className="btn">Enter scores one table at a time</Link></p>
       <Flash msg={one(sp.msg)} err={one(sp.err)} />
@@ -90,7 +91,7 @@ export default async function WeekAdmin({
                   Remove table
                 </ConfirmButton>
               </div>
-              <div className="cols"><span /><span>Player</span><span>Sub</span><span>Pair pts</span><span title="Penalty or other adjustment for this player only">+/−</span></div>
+              <div className="cols"><span /><span>Player</span><span>Sub</span><span>Pair pts</span><span title="Didn't show, or left early">No-show</span></div>
               {m.slots.map((s, i) => {
                 const pos = `${s.side}${s.seat}`;
                 return (
@@ -121,15 +122,23 @@ export default async function WeekAdmin({
                       ) : (
                         <span className="s-pts" />
                       )}
-                      <input
-                        className="s-adj"
-                        name={`adjust_${m.id}_${pos}`}
-                        defaultValue={s.adjust ?? ""}
-                        inputMode="numeric"
-                        pattern="-?[0-9]*"
-                        placeholder="+/−"
-                        aria-label={`Table ${m.table_no} ${pos} adjustment`}
-                      />
+                      <span className="s-adj">
+                        <label className="noshow" title="Didn't show, or left early: −2 for them, +3 partner, +6 opponents">
+                          <input type="checkbox" name={`noshow_${m.id}_${pos}`} defaultChecked={s.no_show} aria-label={`Table ${m.table_no} ${pos} no-show`} />
+                          <span>No-show</span>
+                        </label>
+                        {s.adjust != null && (
+                          // Older entries used a manual +/−. Keep it visible so it can be cleared.
+                          <input
+                            name={`adjust_${m.id}_${pos}`}
+                            defaultValue={s.adjust}
+                            inputMode="numeric"
+                            pattern="-?[0-9]*"
+                            title="Old +/− entry. Clear it if you use No-show instead."
+                            aria-label={`Table ${m.table_no} ${pos} old adjustment`}
+                          />
+                        )}
+                      </span>
                     </div>
                   </div>
                 );

@@ -71,7 +71,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                         ? <span title={`Sub: ${displayName(name(r.me!.sub_id))}`}>
                             {credited?.get(r.w.week_no) ?? "–"} <span className="muted small">(sub)</span>
                           </span>
-                        : r.me!.score ?? "–"}
+                        : r.me!.no_show
+                          ? <>{credited?.get(r.w.week_no) ?? "–"} <span className="muted small">(no-show)</span></>
+                          : credited?.get(r.w.week_no) ?? r.me!.score ?? "–"}
                   </td>
                 </tr>
               ) : (

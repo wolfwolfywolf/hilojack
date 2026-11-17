@@ -121,10 +121,10 @@ button.link { background: none; border: none; color: inherit; padding: 0; font-w
 
 /* admin week editor */
 .edit-match { padding: 12px; }
-.edit-match .slot { display: grid; grid-template-columns: 2rem 1fr 1fr 3.6rem 3.2rem; gap: 6px; align-items: center; margin-bottom: 6px; }
+.edit-match .slot { display: grid; grid-template-columns: 2rem 1fr 1fr 3.6rem 5.2rem; gap: 6px; align-items: center; margin-bottom: 6px; }
 .edit-match .slot select, .edit-match .slot input { width: 100%; padding: 6px; }
 .edit-match .slot .pos { font-size: 0.8rem; color: var(--muted); font-weight: 700; }
-.edit-match .cols { display: grid; grid-template-columns: 2rem 1fr 1fr 3.6rem 3.2rem; gap: 6px; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
+.edit-match .cols { display: grid; grid-template-columns: 2rem 1fr 1fr 3.6rem 5.2rem; gap: 6px; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
 .edit-match hr { border: none; border-top: 1px dashed var(--border); margin: 8px 0; }
 .warn { color: var(--err); font-size: 0.875rem; }
 .sticky-save { position: sticky; bottom: 0; background: var(--bg); padding: 12px 0; border-top: 1px solid var(--border); margin-top: 16px; }
@@ -235,7 +235,7 @@ section[id^="week-"] { scroll-margin-top: 12px; }
   /* Admin week editor: player on its own line, then sub / points / +/- */
   .edit-match .cols { display: none; }
   .edit-match .slot {
-    grid-template-columns: 2rem 1fr 4.2rem 3.8rem;
+    grid-template-columns: 2rem 1fr 4.2rem 5.2rem;
     grid-template-areas: "pos player player player" ". sub pts adj";
     margin-bottom: 12px;
   }
@@ -395,3 +395,12 @@ header.top .wrap > nav { order: 3; }
 .by-player li.has-sub { background: var(--gold-tint); margin: 0 -8px; padding: 7px 8px; border-radius: 6px; }
 .by-player .bp-table { display: block; font-weight: 400; font-size: 0.8rem; color: var(--muted); }
 .standings .wk-note { display: block; font-size: 0.72rem; color: var(--muted); line-height: 1.1; }
+
+/* No-show tick box (admin) */
+label.noshow { display: inline-flex; align-items: center; gap: 4px; margin: 0; font-size: 0.8rem; color: var(--muted); white-space: nowrap; cursor: pointer; }
+label.noshow input { width: 18px !important; height: 18px; margin: 0; padding: 0; }
+label.noshow:has(input:checked) { color: var(--err); font-weight: 700; }
+.edit-match .slot .s-adj { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.table-entry .extra-row .old-adj { grid-column: 1 / -1; }
+.match .team .sub.no-show { color: var(--err); font-weight: 600; }
+.match .ns-bonus { margin-top: 4px; font-size: 0.75rem; color: var(--muted); }
