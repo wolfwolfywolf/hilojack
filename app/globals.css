@@ -77,8 +77,12 @@ tr.hl td { background: var(--highlight); }
 .match .head { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; }
 .match .side { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
 .match .side + .side { border-top: 1px dashed var(--border); }
+.match .names { flex: 1; min-width: 0; }
 .match .names span { display: block; }
-.match .total { font-weight: 700; font-variant-numeric: tabular-nums; align-self: center; }
+.match .names a { white-space: nowrap; }
+.match .names .hi { margin-top: 3px; line-height: 1; }
+.match .names .hi .badge { display: inline-block; margin-right: 0; }
+.match .total { flex-shrink: 0; white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; align-self: center; }
 .match .win .total { color: var(--brand); }
 .match .sub { font-size: 0.8rem; color: var(--muted); }
 .match .pscore { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 6px; font-size: 0.85rem; }

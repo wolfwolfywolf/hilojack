@@ -45,9 +45,13 @@ export function MatchCard({
                   </span>
                 );
               })}
+            {highSides?.includes(`${match.id}${side}`) && (
+              <div className="hi">
+                <span className="badge" title="Most points this week">★ Week high</span>
+              </div>
+            )}
           </div>
           <div className="total">
-            {highSides?.includes(`${match.id}${side}`) && <span className="badge" title="Most points this week">★ Week high</span>}
             {side === "A" ? a ?? "" : b ?? ""}
           </div>
         </div>
