@@ -37,9 +37,9 @@ async function getMatchesRaw(weekNo?: number): Promise<MatchRow[]> {
   const sql = await db();
   const rows = await sql<
     { id: number; week_no: number; table_no: number; side: Slot["side"] | null; seat: number | null;
-      player_id: number | null; sub_id: number | null; score: number | null; adjust: number | null }[]
+      player_id: number | null; sub_id: number | null; score: number | null; adjust: number | null; no_show: boolean | null }[]
   >`
-    select m.id, m.week_no, m.table_no, s.side, s.seat, s.player_id, s.sub_id, s.score, s.adjust
+    select m.id, m.week_no, m.table_no, s.side, s.seat, s.player_id, s.sub_id, s.score, s.adjust, s.no_show
     from matches m left join match_slots s on s.match_id = m.id
     ${weekNo != null ? sql`where m.week_no = ${weekNo}` : sql``}
     order by m.week_no, m.table_no`;
@@ -51,7 +51,7 @@ async function getMatchesRaw(weekNo?: number): Promise<MatchRow[]> {
         id: r.id,
         week_no: r.week_no,
         table_no: r.table_no,
-        slots: SLOT_ORDER.map(([side, seat]) => ({ side, seat, player_id: null, sub_id: null, score: null, adjust: null })),
+        slots: SLOT_ORDER.map(([side, seat]) => ({ side, seat, player_id: null, sub_id: null, score: null, adjust: null, no_show: false })),
       };
       byId.set(r.id, m);
     }
@@ -61,6 +61,7 @@ async function getMatchesRaw(weekNo?: number): Promise<MatchRow[]> {
       slot.sub_id = r.sub_id;
       slot.score = r.score;
       slot.adjust = r.adjust;
+      slot.no_show = !!r.no_show;
     }
   }
   return [...byId.values()];

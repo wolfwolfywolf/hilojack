@@ -125,7 +125,7 @@ export async function deletePlayer(fd: FormData) {
   const id = intOrNull(fd, "id");
   const sql = await db();
   const [{ scored, scheduled }] = await sql<{ scored: number; scheduled: number }[]>`
-    select count(*) filter (where score is not null or adjust is not null)::int as scored,
+    select count(*) filter (where score is not null or adjust is not null or no_show)::int as scored,
            count(*)::int as scheduled
     from match_slots where player_id = ${id} or sub_id = ${id}`;
   if (scored > 0) {
@@ -262,11 +262,11 @@ export async function saveWeek(fd: FormData) {
         // Partners score together, so one pair score is credited to both seats.
         const score = intOrNull(fd, `score_${id}_${pos[0]}`);
         await tx`
-          insert into match_slots (match_id, side, seat, player_id, sub_id, score, adjust)
-          values (${id}, ${pos[0]}, ${Number(pos[1])}, ${player}, ${sub}, ${score}, ${intOrNull(fd, f("adjust"))})
+          insert into match_slots (match_id, side, seat, player_id, sub_id, score, adjust, no_show)
+          values (${id}, ${pos[0]}, ${Number(pos[1])}, ${player}, ${sub}, ${score}, ${intOrNull(fd, f("adjust"))}, ${fd.has(f("noshow")) && sub == null})
           on conflict (match_id, side, seat) do update set
             player_id = excluded.player_id, sub_id = excluded.sub_id,
-            score = excluded.score, adjust = excluded.adjust`;
+            score = excluded.score, adjust = excluded.adjust, no_show = excluded.no_show`;
       }
     }
   });
@@ -274,7 +274,7 @@ export async function saveWeek(fd: FormData) {
   back(path, "msg", "Week saved.");
 }
 
-/** Phone score entry: saves one table's pair points, subs and +/- only (never moves players). */
+/** Phone score entry: saves one table's pair points, subs and no-shows only (never moves players). */
 export async function saveTable(fd: FormData) {
   await requireAdmin();
   const week = intOrNull(fd, "week_no");
@@ -301,11 +301,11 @@ export async function saveTable(fd: FormData) {
       const score = intOrNull(fd, `score_${pos[0]}`);
       const sub = intOrNull(fd, `sub_${pos}`);
       await tx`
-        insert into match_slots (match_id, side, seat, sub_id, score, adjust)
-        values (${id}, ${pos[0]}, ${Number(pos[1])}, ${sub}, ${score}, ${adj(pos)})
+        insert into match_slots (match_id, side, seat, sub_id, score, adjust, no_show)
+        values (${id}, ${pos[0]}, ${Number(pos[1])}, ${sub}, ${score}, ${adj(pos)}, ${fd.has(`noshow_${pos}`) && sub == null})
         on conflict (match_id, side, seat) do update set
           sub_id = case when excluded.sub_id = match_slots.player_id then null else excluded.sub_id end,
-          score = excluded.score, adjust = excluded.adjust`;
+          score = excluded.score, adjust = excluded.adjust, no_show = excluded.no_show`;
     }
   });
   refreshAll();

@@ -47,9 +47,11 @@ create table if not exists match_slots (
   player_id int references players(id) on delete set null,
   sub_id    int references players(id) on delete set null,
   score     int,  -- the pair's points for the night, same for both partners
-  adjust    int,  -- this player's own +/- (no-show or early-leave penalty)
+  adjust    int,  -- old manual +/- (replaced by no_show; kept so earlier entries still count)
   primary key (match_id, side, seat)
 );
+-- No-show or left early: player gets -2, partner +3, opponents +6 (worked out in lib/standings.ts).
+alter table match_slots add column if not exists no_show boolean not null default false;
 
 -- Nights with no league (holidays). Later weeks were pushed back a week when one was added.
 create table if not exists off_dates (

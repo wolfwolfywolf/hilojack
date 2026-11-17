@@ -6,7 +6,7 @@ import { displayName, subLabel, subStats } from "@/lib/standings";
 import { Flash, one, type SearchParams } from "@/components/Flash";
 import type { MatchRow } from "@/lib/types";
 
-const done = (m: MatchRow) => m.slots.every((s) => s.score != null);
+const done = (m: MatchRow) => m.slots.every((s) => s.score != null) || m.slots.some((s) => s.no_show);
 const ADJUSTS = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5];
 
 /** Phone-first score entry: one table at a time, two big number boxes, save and go to the next table. */
@@ -129,10 +129,12 @@ export default async function ScoreEntry({
             );
           })}
 
-          <details className="extras" open={m.slots.some((s) => s.sub_id != null || s.adjust != null)}>
-            <summary>Subs and +/− penalties</summary>
+          <details className="extras" open={m.slots.some((s) => s.sub_id != null || s.adjust != null || s.no_show)}>
+            <summary>Subs and no-shows</summary>
             <p className="muted small">
-              Pick a sub for anyone who didn&apos;t play. Use +/− for one player only, such as a no-show (−2, partner +3).
+              Pick a sub for anyone who didn&apos;t play. Tick No-show for a player who didn&apos;t show or left early: they get −2,
+              their partner gets the pair&apos;s points +3, and the opponents get their points +6. If someone left early, type the
+              pair&apos;s points so far.
             </p>
             {m.slots.map((s) => {
               const pos = `${s.side}${s.seat}`;
@@ -145,10 +147,16 @@ export default async function ScoreEntry({
                     <option value="">No sub</option>
                     {subs.map((x) => <option key={x.id} value={x.id}>{subLabel(x, subStatById)}</option>)}
                   </select>
-                  <select name={`adjust_${pos}`} defaultValue={s.adjust ?? ""} aria-label={`+/− for ${displayName(p)}`}>
-                    <option value="">+/−</option>
-                    {adjOpts.map((a) => <option key={a} value={a}>{a > 0 ? `+${a}` : `−${-a}`}</option>)}
-                  </select>
+                  <label className="noshow">
+                    <input type="checkbox" name={`noshow_${pos}`} defaultChecked={s.no_show} aria-label={`No-show: ${displayName(p)}`} />
+                    <span>No-show</span>
+                  </label>
+                  {s.adjust != null && (
+                    <select name={`adjust_${pos}`} defaultValue={s.adjust} aria-label={`Old +/− for ${displayName(p)}`} title="Old +/− entry. Clear it if you use No-show instead." className="old-adj">
+                      <option value="">Clear old +/−</option>
+                      {adjOpts.map((a) => <option key={a} value={a}>{a > 0 ? `+${a}` : `−${-a}`} (old)</option>)}
+                    </select>
+                  )}
                 </div>
               );
             })}

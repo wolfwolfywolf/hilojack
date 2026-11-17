@@ -29,6 +29,7 @@ export interface Slot {
   sub_id: number | null;
   score: number | null;
   adjust: number | null;
+  no_show: boolean;
 }
 
 export interface OffDate {

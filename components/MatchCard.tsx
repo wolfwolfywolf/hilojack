@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { displayName, sideTotal } from "@/lib/standings";
+import { displayName, isNoShow, NO_SHOW, sideTotal } from "@/lib/standings";
 import type { MatchRow, Player, Slot } from "@/lib/types";
 
 /** One table: team A on the left, "vs" in the middle, team B on the right. Scores sit under each team once entered. */
@@ -34,7 +34,24 @@ export function MatchCard({
           <span className="sub">for {p ? link(p) : "TBD"}</span>
         </li>
       );
-    return <li key={s.seat}>{p ? link(p) : <span className="muted">TBD</span>}</li>;
+    return (
+      <li key={s.seat}>
+        {p ? link(p) : <span className="muted">TBD</span>}
+        {isNoShow(s) && <span className="sub no-show">no-show (−2)</span>}
+      </li>
+    );
+  };
+  // No-show rule extras, so the card explains points that differ from the pair score.
+  const bonus = (side: "A" | "B") => {
+    const mineOut = match.slots.filter((s) => s.side === side && isNoShow(s));
+    const oppOut = match.slots.some((s) => s.side !== side && isNoShow(s));
+    const stayed = mineOut.length === 1 ? match.slots.find((s) => s.side === side && !isNoShow(s)) : undefined;
+    const stayedName = stayed?.player_id != null ? displayName(byId.get(stayed.player_id)) : null;
+    const parts = [
+      oppOut && `+${NO_SHOW.opponents} each (no-show)`,
+      stayedName && `+${NO_SHOW.partner} for ${stayedName}`,
+    ].filter(Boolean);
+    return parts.length ? parts.join(" · ") : null;
   };
   const team = (side: "A" | "B") => {
     const high = highSides?.includes(`${match.id}${side}`);
@@ -47,6 +64,7 @@ export function MatchCard({
             {high && <span className="badge">★ Week high</span>}
           </div>
         )}
+        {bonus(side) && <div className="ns-bonus">{bonus(side)}</div>}
       </div>
     );
   };
