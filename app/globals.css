@@ -372,7 +372,7 @@ header.top .wrap > nav { order: 3; }
 .match .team ul { list-style: none; margin: 0; padding: 0; }
 .match .team li { padding: 2px 0; line-height: 1.35; }
 .match .team li a { white-space: nowrap; }
-.match .team-B { text-align: right; }
+.match .team { text-align: center; }
 .match .team .sub { display: block; font-size: 0.78rem; color: var(--muted); }
 .match .team .sub a { color: var(--muted); }
 .match .team-score { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; align-items: center; gap: 4px; }
