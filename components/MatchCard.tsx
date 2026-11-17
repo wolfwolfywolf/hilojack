@@ -16,8 +16,9 @@ export function MatchCard({
   const a = sideTotal(match, "A");
   const b = sideTotal(match, "B");
   const winner = a != null && b != null && a !== b ? (a > b ? "A" : "B") : null;
+  const mine = highlight != null && match.slots.some((s) => s.player_id === highlight || s.sub_id === highlight);
   return (
-    <div className="card match">
+    <div className={`card match${mine ? " mine" : ""}`}>
       {(["A", "B"] as const).map((side) => (
         <div key={side} className={`side${winner === side ? " win" : ""}`}>
           <div className="names">
@@ -45,10 +46,16 @@ export function MatchCard({
                   </span>
                 );
               })}
+            {highSides?.includes(`${match.id}${side}`) && (
+              <div className="hi">
+                <span className="badge" title="Most points this week">★ Week high</span>
+              </div>
+            )}
           </div>
           <div className="total">
-            {highSides?.includes(`${match.id}${side}`) && <span className="badge" title="Most points this week">★ Week high</span>}
-            {side === "A" ? a ?? "" : b ?? ""}
+            {highSides?.includes(`${match.id}${side}`) ? (
+              <span className="high-score" title="Most points this week">{side === "A" ? a : b}</span>
+            ) : side === "A" ? a ?? "" : b ?? ""}
           </div>
         </div>
       ))}

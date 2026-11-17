@@ -20,6 +20,8 @@ export default async function StandingsPage() {
   const high = cw != null ? weekHigh(matches, cw) : null;
   const meId = Number((await cookies()).get("hlj_me")?.value);
   const me = players.find((p) => p.id === meId);
+  const hasMe = (m: (typeof matches)[number]) => me != null && m.slots.some((s) => s.player_id === me.id || s.sub_id === me.id);
+  if (me) cwMatches.sort((a, b) => Number(hasMe(b)) - Number(hasMe(a)));
 
   return (
     <div className="stack">
@@ -52,7 +54,7 @@ export default async function StandingsPage() {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.player.id}>
+                <tr key={r.player.id} className={r.player.id === me?.id ? "me-row" : undefined}>
                   <td className="num">{r.rank}</td>
                   <td>
                     <Link href={`/players/${r.player.id}`}>{displayName(r.player)}</Link>
@@ -77,7 +79,7 @@ export default async function StandingsPage() {
           {cwInfo?.notes && <p className="notice">{cwInfo.notes}</p>}
           <div className="grid">
             {cwMatches.map((m) => (
-              <MatchCard key={m.id} match={m} byId={byId} highSides={high?.matchSides} />
+              <MatchCard key={m.id} match={m} byId={byId} highlight={me?.id} highSides={high?.matchSides} />
             ))}
           </div>
           <p><Link href="/schedule">Full schedule</Link></p>

@@ -9,6 +9,9 @@
   --brand-ink: #ffffff;
   --accent: #b3261e;
   --highlight: #fff4c2;
+  --gold: #f5c518;
+  --gold-ink: #241c00;
+  --gold-tint: #fff6cf;
   --ok: #1f6b45;
   --err: #b3261e;
   --radius: 10px;
@@ -26,6 +29,9 @@
     --brand-ink: #08130c;
     --accent: #ef6a61;
     --highlight: #3b3615;
+    --gold: #f5c518;
+    --gold-ink: #241c00;
+    --gold-tint: #2c2a14;
     --ok: #5cc48c;
     --err: #ef6a61;
     color-scheme: dark;
@@ -77,12 +83,21 @@ tr.hl td { background: var(--highlight); }
 .match .head { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; }
 .match .side { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
 .match .side + .side { border-top: 1px dashed var(--border); }
+.match .names { flex: 1; min-width: 0; }
 .match .names span { display: block; }
-.match .total { font-weight: 700; font-variant-numeric: tabular-nums; align-self: center; }
+.match .names a { white-space: nowrap; }
+.match .names .hi { margin-top: 3px; line-height: 1; }
+.match .names .hi .badge { display: inline-block; margin-right: 0; }
+.match .total { flex-shrink: 0; white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; align-self: center; }
 .match .win .total { color: var(--brand); }
+.match .total .high-score { display: inline-block; min-width: 2em; text-align: center; color: #8a6d00; background: #ffe58a; border-radius: 999px; padding: 1px 8px; }
 .match .sub { font-size: 0.8rem; color: var(--muted); }
 .match .pscore { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 6px; font-size: 0.85rem; }
-.me { background: var(--highlight); border-radius: 4px; padding: 0 3px; }
+.me { background: var(--gold); color: var(--gold-ink); border-radius: 5px; padding: 1px 5px; font-weight: 700; text-decoration: none; }
+.match.mine { border: 2px solid var(--gold); background: var(--gold-tint); }
+table.standings tr.me-row td { background: var(--gold-tint); font-weight: 700; }
+table.standings tr.me-row td:first-child { box-shadow: inset 5px 0 0 var(--gold); }
+table.standings tr.me-row a { color: var(--text); }
 
 .weeks-nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 16px; }
 .weeks-nav a { min-width: 2.25rem; text-align: center; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; text-decoration: none; background: var(--surface); color: var(--text); }
