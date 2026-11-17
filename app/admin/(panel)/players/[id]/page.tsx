@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLeague } from "@/lib/league";
-import { deletePlayer, updatePlayer } from "@/lib/actions";
+import { deletePhoto, deletePlayer, updatePlayer } from "@/lib/actions";
+import { Avatar } from "@/components/Avatar";
+import { PlayerPhotoUpload } from "@/components/PhotoUpload";
 import { displayName } from "@/lib/standings";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { Flash, one, type SearchParams } from "@/components/Flash";
 
-/** Edit one player: name, sub or regular, active, delete. */
+/** Edit one player: name, sub or regular, active, photo, delete. */
 export default async function EditPlayer({
   params,
   searchParams,
@@ -50,6 +52,20 @@ export default async function EditPlayer({
         <label className="inline-check"><input type="checkbox" name="active" defaultChecked={p.active} /> Active (untick to retire them; their history stays)</label>
         <button type="submit" className="big-save">Save</button>
       </form>
+
+      <section className="card">
+        <h2 style={{ marginTop: 0 }}>Photo</h2>
+        <div className="photo-edit">
+          <Avatar player={p} size={72} />
+          <PlayerPhotoUpload playerId={p.id} hasPhoto={!!p.photo_v} />
+          {p.photo_v ? (
+            <form action={deletePhoto}>
+              <input type="hidden" name="id" value={p.id} />
+              <ConfirmButton type="submit" className="link" message={`Remove ${displayName(p)}'s photo?`}>Remove photo</ConfirmButton>
+            </form>
+          ) : null}
+        </div>
+      </section>
 
       <section className="card danger-zone">
         <h2 style={{ marginTop: 0 }}>Delete</h2>

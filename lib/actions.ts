@@ -456,3 +456,40 @@ export async function importScheduleText(fd: FormData) {
       ". League players not on this schedule were marked inactive.",
   );
 }
+
+// ---------- player photos ----------
+
+const PHOTO_MAX_BYTES = 400_000; // the browser shrinks photos to ~256px first, so real ones are ~15-30 KB
+
+/** Save one or more photos. Form fields are named photo_<playerId>, each a small image file. */
+export async function savePhotos(fd: FormData): Promise<{ saved: number; errors: string[] }> {
+  await requireAdmin();
+  const sql = await db();
+  let saved = 0;
+  const errors: string[] = [];
+  for (const [key, val] of fd.entries()) {
+    const m = key.match(/^photo_(\d+)$/);
+    if (!m || typeof val === "string") continue;
+    const id = Number(m[1]);
+    if (!/^image\/(jpeg|png|webp)$/.test(val.type)) { errors.push(`Player ${id}: not a JPEG/PNG/WebP image.`); continue; }
+    if (val.size > PHOTO_MAX_BYTES) { errors.push(`Player ${id}: photo is too big.`); continue; }
+    const bytes = Buffer.from(await val.arrayBuffer());
+    const res = await sql`
+      insert into player_photos (player_id, image, mime, updated_at)
+      select id, ${bytes}, ${val.type}, now() from players where id = ${id}
+      on conflict (player_id) do update set image = excluded.image, mime = excluded.mime, updated_at = now()`;
+    if (res.count) saved++;
+    else errors.push(`Player ${id} not found.`);
+  }
+  refreshAll();
+  return { saved, errors };
+}
+
+export async function deletePhoto(fd: FormData) {
+  await requireAdmin();
+  const id = intOrNull(fd, "id");
+  const sql = await db();
+  await sql`delete from player_photos where player_id = ${id}`;
+  refreshAll();
+  back(`/admin/players/${id}`, "msg", "Photo removed.");
+}

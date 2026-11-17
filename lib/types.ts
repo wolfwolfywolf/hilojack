@@ -14,6 +14,8 @@ export interface Player {
   first_initial: string;
   is_sub: boolean;
   active: boolean;
+  /** Changes when the photo changes (used to bust the browser cache); null = no photo. */
+  photo_v?: number | null;
 }
 
 export interface WeekInfo {

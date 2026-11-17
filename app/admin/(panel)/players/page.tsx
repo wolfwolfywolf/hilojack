@@ -4,13 +4,15 @@ import { addPlayers } from "@/lib/actions";
 import { displayName } from "@/lib/standings";
 import { Flash, one, type SearchParams } from "@/components/Flash";
 import type { Player } from "@/lib/types";
+import { Avatar } from "@/components/Avatar";
+import { BulkPhotoUpload } from "@/components/PhotoUpload";
 
 function NameList({ players }: { players: Player[] }) {
   return (
     <ul className="name-list card">
       {players.map((p) => (
         <li key={p.id}>
-          <Link href={`/admin/players/${p.id}`}>{displayName(p)}</Link>
+          <Link href={`/admin/players/${p.id}`}><Avatar player={p} size={28} />{displayName(p)}</Link>
         </li>
       ))}
     </ul>
@@ -42,6 +44,11 @@ export default async function PlayersAdmin({ searchParams }: { searchParams: Sea
         </form>
       </details>
 
+      <details className="card add-players">
+        <summary>Add photos</summary>
+        <BulkPhotoUpload players={players} />
+      </details>
+
       <h2>League players ({regulars.length})</h2>
       {regulars.length ? <NameList players={regulars} /> : <p className="muted">None yet.</p>}
       {regulars.length % 4 !== 0 && (
@@ -59,7 +66,7 @@ export default async function PlayersAdmin({ searchParams }: { searchParams: Sea
           <NameList players={inactive} />
         </details>
       )}
-      <p className="muted small">Tap a name to rename them, switch between player and sub, retire them, or delete them.</p>
+      <p className="muted small">Tap a name to add or change their photo, rename them, switch between player and sub, retire them, or delete them.</p>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { getLeague } from "@/lib/league";
 import { computeStandings, creditedScores, displayName } from "@/lib/standings";
 import { fmtAvg, fmtDate } from "@/components/format";
 import { BackButton } from "@/components/BackButton";
+import { Avatar } from "@/components/Avatar";
 
 export default async function PlayerPage({ params }: { params: Promise<{ id: string }> }) {
   const id = Number((await params).id);
@@ -33,17 +34,20 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="stack">
-      <div>
-        <BackButton />
-        <h1>{displayName(player)}</h1>
-        {standing ? (
-          <p className="muted" style={{ margin: 0 }}>
-            Rank {standing.rank} · Total {standing.total} · {standing.weeksPlayed} weeks · Avg{" "}
-            {fmtAvg(standing.average)} · High {standing.high ?? "–"}
-          </p>
-        ) : (
-          player.is_sub && <p className="muted" style={{ margin: 0 }}>Sub</p>
-        )}
+      <div className="player-head">
+        <div>
+          <BackButton />
+          <h1>{displayName(player)}</h1>
+          {standing ? (
+            <p className="muted" style={{ margin: 0 }}>
+              Rank {standing.rank} · Total {standing.total} · {standing.weeksPlayed} weeks · Avg{" "}
+              {fmtAvg(standing.average)} · High {standing.high ?? "–"}
+            </p>
+          ) : (
+            player.is_sub && <p className="muted" style={{ margin: 0 }}>Sub</p>
+          )}
+        </div>
+        {player.photo_v ? <Avatar player={player} size={64} /> : null}
       </div>
       <div className="table-scroll card" style={{ padding: 0 }}>
         <table className="stack-sm">

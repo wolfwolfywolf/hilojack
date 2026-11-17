@@ -22,8 +22,10 @@ async function getSettingsRaw(): Promise<Settings> {
 async function getPlayersRaw(): Promise<Player[]> {
   const sql = await db();
   return sql<Player[]>`
-    select id, last_name, first_initial, is_sub, active
-    from players order by lower(last_name), lower(first_initial), id`;
+    select p.id, p.last_name, p.first_initial, p.is_sub, p.active,
+           floor(extract(epoch from ph.updated_at))::int as photo_v
+    from players p left join player_photos ph on ph.player_id = p.id
+    order by lower(p.last_name), lower(p.first_initial), p.id`;
 }
 
 async function getWeeksRaw(): Promise<WeekInfo[]> {

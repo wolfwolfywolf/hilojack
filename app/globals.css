@@ -321,7 +321,7 @@ a.is-pending:not(.btn) { opacity: 0.6; }
 }
 
 /* Admin players: compact name list + edit screen */
-.name-list { list-style: none; margin: 0; padding: 4px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.name-list { list-style: none; margin: 0; padding: 4px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); }
 .name-list li a { display: block; padding: 9px 14px; text-decoration: none; }
 .name-list li a:hover { background: var(--surface-2); }
 .add-players summary, .inactive-players summary { cursor: pointer; font-weight: 600; }
@@ -404,3 +404,16 @@ label.noshow:has(input:checked) { color: var(--err); font-weight: 700; }
 .table-entry .extra-row .old-adj { grid-column: 1 / -1; }
 .match .team .sub.no-show { color: var(--err); font-weight: 600; }
 .match .ns-bonus { margin-top: 4px; font-size: 0.75rem; color: var(--muted); }
+
+/* Player photos */
+.avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; border-radius: 50%; object-fit: cover; background: var(--surface-2); color: var(--muted); font-weight: 700; letter-spacing: 0.02em; vertical-align: middle; }
+.avatar.empty { border: 1px solid var(--border); }
+.player-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.player-head .avatar { margin-top: 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2); }
+.pick-grid .pick { display: flex; align-items: center; gap: 10px; }
+.pick-grid .pick.on .avatar.empty { background: rgba(255, 255, 255, 0.5); color: var(--gold-ink); border-color: transparent; }
+.name-list li a { display: flex; align-items: center; gap: 8px; }
+.photo-edit { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.photo-matches { list-style: none; padding: 0; margin: 12px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.photo-matches li { display: flex; align-items: center; gap: 10px; }
+.photo-matches img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }

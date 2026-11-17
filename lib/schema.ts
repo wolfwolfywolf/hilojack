@@ -59,6 +59,15 @@ create table if not exists off_dates (
   reason    text not null default ''
 );
 
+-- One small square photo per player (resized in the browser before upload), served at /photo/<id>
+-- behind the league password. Kept in the database, not the repo, because the repo is public.
+create table if not exists player_photos (
+  player_id  int primary key references players(id) on delete cascade,
+  image      bytea not null,
+  mime       text not null default 'image/jpeg',
+  updated_at timestamptz not null default now()
+);
+
 -- Lock the tables away from Supabase's public API (anon/authenticated keys).
 -- The app connects as the table owner, which RLS does not restrict.
 alter table settings    enable row level security;
@@ -67,4 +76,5 @@ alter table weeks       enable row level security;
 alter table matches     enable row level security;
 alter table match_slots enable row level security;
 alter table off_dates   enable row level security;
+alter table player_photos enable row level security;
 `;
