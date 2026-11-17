@@ -58,7 +58,6 @@ export default async function StandingsPage() {
                   <td className="num">{r.rank}</td>
                   <td>
                     <Link href={`/players/${r.player.id}`}>{displayName(r.player)}</Link>
-                    {r.player.id === me?.id && <span className="you">You</span>}
                   </td>
                   <td className="num"><strong>{r.total}</strong></td>
                   <td className="num">{r.weeksPlayed}</td>

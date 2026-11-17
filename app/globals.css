@@ -90,6 +90,7 @@ tr.hl td { background: var(--highlight); }
 .match .names .hi .badge { display: inline-block; margin-right: 0; }
 .match .total { flex-shrink: 0; white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; align-self: center; }
 .match .win .total { color: var(--brand); }
+.match .total .high-score { display: inline-block; min-width: 2em; text-align: center; color: #8a6d00; background: #ffe58a; border-radius: 999px; padding: 1px 8px; }
 .match .sub { font-size: 0.8rem; color: var(--muted); }
 .match .pscore { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 6px; font-size: 0.85rem; }
 .me { background: var(--gold); color: var(--gold-ink); border-radius: 5px; padding: 1px 5px; font-weight: 700; text-decoration: none; }
@@ -98,7 +99,6 @@ tr.hl td { background: var(--highlight); }
 table.standings tr.me-row td { background: var(--gold-tint); font-weight: 700; }
 table.standings tr.me-row td:first-child { box-shadow: inset 5px 0 0 var(--gold); }
 table.standings tr.me-row a { color: var(--text); }
-table.standings tr.me-row .you { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--gold-ink); background: var(--gold); border-radius: 999px; padding: 1px 7px; margin-left: 6px; vertical-align: middle; }
 
 .weeks-nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 16px; }
 .weeks-nav a { min-width: 2.25rem; text-align: center; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; text-decoration: none; background: var(--surface); color: var(--text); }
