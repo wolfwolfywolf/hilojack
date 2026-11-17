@@ -1,6 +1,6 @@
 import type { Player } from "@/lib/types";
 
-/** Small round photo, or the player's initials when there's no photo. */
+/** Small square photo, or the player's initials when there's no photo. */
 export function Avatar({ player, size = 32 }: { player: Pick<Player, "id" | "last_name" | "first_initial" | "photo_v">; size?: number }) {
   const style = { width: size, height: size, fontSize: Math.round(size * 0.38) };
   if (player.photo_v)
