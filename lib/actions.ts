@@ -372,7 +372,8 @@ export async function pickMe(fd: FormData) {
   const id = intOrNull(fd, "player");
   if (id == null) jar.delete("hlj_me");
   else jar.set("hlj_me", String(id), { path: "/", maxAge: COOKIE_MAX_AGE, sameSite: "lax", httpOnly: true });
-  redirect("/");
+  revalidatePath("/", "layout");
+  redirect(safeNext(str(fd, "next"), "/"));
 }
 
 // ---------- import a schedule (tee sheet) ----------

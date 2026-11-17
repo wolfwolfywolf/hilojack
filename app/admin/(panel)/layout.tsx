@@ -1,25 +1,12 @@
-import Link from "next/link";
-import { logout } from "@/lib/actions";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <header className="top admin">
-        <div className="wrap">
-          <Link href="/admin" className="brand"><img src="/icons/icon-192.png" alt="" className="logo" width={34} height={34} />League admin</Link>
-          <nav>
-            <Link href="/admin/players">Players</Link>
-            <Link href="/admin/schedule">Schedule &amp; scores</Link>
-            <Link href="/admin/settings">Settings</Link>
-            <Link href="/">View site</Link>
-            <form action={logout}>
-              <input type="hidden" name="role" value="admin" />
-              <button className="link" type="submit">Sign out</button>
-            </form>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader />
       <main className="wrap">{children}</main>
+      <SiteFooter />
     </>
   );
 }
