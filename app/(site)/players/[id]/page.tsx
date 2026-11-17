@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getLeague } from "@/lib/league";
 import { computeStandings, creditedScores, displayName } from "@/lib/standings";
 import { fmtAvg, fmtDate } from "@/components/format";
+import { BackButton } from "@/components/BackButton";
 
 export default async function PlayerPage({ params }: { params: Promise<{ id: string }> }) {
   const id = Number((await params).id);
@@ -33,6 +34,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   return (
     <div className="stack">
       <div>
+        <BackButton />
         <h1>{displayName(player)}</h1>
         {standing ? (
           <p className="muted" style={{ margin: 0 }}>
