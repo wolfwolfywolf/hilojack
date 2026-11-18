@@ -108,3 +108,29 @@ test("semifinal winners make the final; the final decides champions", () => {
   assert.equal(place(4), "3rd/4th place");
   assert.equal(st.rows[0].place, "Champions");
 });
+
+test("last season's Night 1 results: partners match, standings and the top 20 come out the same", () => {
+  // From the league's 2025-26 Night 1 results sheet, in finishing order: [season seed, R1, R2, R3].
+  const results: [number, number, number, number][] = [
+    [3, 8, 10, 5], [4, 8, 6, 6], [17, 7, 2, 11], [31, 8, 5, 7], [1, 3, 10, 6], [7, 3, 9, 7], [24, 10, 7, 2],
+    [20, 0, 7, 11], [11, 4, 6, 7], [16, 4, 7, 6], [30, 9, 0, 7], [36, 7, 0, 9], [14, 3, 7, 5], [2, 3, 6, 5],
+    [10, 2, 5, 7], [18, 7, 7, 0], [29, 9, 5, 0], [12, 4, 5, 4], [23, 10, 0, 3], [27, 4, 4, 5],
+    [9, 2, 6, 4], [22, 2, 7, 3], [25, 5, 4, 3], [26, 5, 2, 5], [33, 0, 3, 9], [35, 7, 3, 2], [13, 3, 2, 6],
+    [15, 4, 2, 5], [6, 0, 3, 7], [5, 0, 9, 0], [28, 4, 2, 3], [32, 8, 0, 0], [8, 3, 3, 0], [21, 2, 0, 2],
+    [19, 0, 2, 0], [34, 0, 0, 2],
+  ];
+  const pts = new Map(results.map(([seed, ...r]) => [seed, r]));
+  const tables: MatchRow[] = [];
+  for (const r of [1, 2, 3] as const)
+    earlyRoundTables(seeds36, r)!.forEach(([a1, a2, b1, b2], i) => {
+      // Partners always got the same points on the sheet, which confirms the seating pattern.
+      assert.equal(pts.get(a1)![r - 1], pts.get(a2)![r - 1], `round ${r}: seeds ${a1} & ${a2}`);
+      assert.equal(pts.get(b1)![r - 1], pts.get(b2)![r - 1], `round ${r}: seeds ${b1} & ${b2}`);
+      tables.push(table(r, i + 1, [a1, a2, b1, b2], pts.get(a1)![r - 1], pts.get(b1)![r - 1]));
+    });
+  const st = tourneyState(seeds36, tables, []);
+  assert.deepEqual(st.rows.map((r) => r.playerId), results.map(([seed]) => seed));
+  assert.equal(st.cuts[0].tie, null);
+  assert.deepEqual(st.cuts[0].advancing, results.slice(0, 20).map(([seed]) => seed));
+  assert.deepEqual(st.seatOrder(4), results.slice(0, 20).map(([seed]) => seed));
+});
