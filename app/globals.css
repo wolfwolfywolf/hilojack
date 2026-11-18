@@ -436,3 +436,9 @@ label.noshow:has(input:checked) { color: var(--err); font-weight: 700; }
 .money span { color: var(--muted); font-weight: 600; }
 .bank details summary { cursor: pointer; }
 .money-row:last-of-type { border-bottom: none; }
+.edit-box > summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; }
+.edit-box > summary::-webkit-details-marker { display: none; }
+.edit-box > summary h2 { margin: 0 0 2px; }
+.edit-box[open] .edit-btn { display: none; }
+.edit-box .edit-btn { padding: 6px 16px; flex: none; }
+.edit-form { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }

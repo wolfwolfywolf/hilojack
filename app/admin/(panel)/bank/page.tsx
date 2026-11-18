@@ -59,6 +59,37 @@ export default async function BankPage({ searchParams }: { searchParams: SearchP
         <div className="card"><div className="muted small">{t.left >= 0 ? "Left over at season end" : "Short at season end"}</div><div className={"big" + (t.left < 0 ? " neg" : "")}>{fmtMoney(Math.abs(t.left) * 100)}</div><div className="muted small">If every prize is paid</div></div>
       </div>
 
+      <details className="card edit-box">
+        <summary>
+          <div>
+            <h2>Prize amounts</h2>
+            <div className="muted small">
+              Ante {fmtMoney(bank.ante * 100)} · Weekly {fmtMoney(bank.weekly_prize * 100)} · Season{" "}
+              {[bank.season_1, bank.season_2, bank.season_3].map((x) => fmtMoney(x * 100)).join(" / ")} · Playoffs{" "}
+              {[bank.playoff_1, bank.playoff_2, bank.playoff_semi].map((x) => fmtMoney(x * 100)).join(" / ")}
+            </div>
+          </div>
+          <span className="btn secondary edit-btn">Edit</span>
+        </summary>
+        <form action={saveBank} className="edit-form">
+        {PRIZE_FIELDS.map((group, gi) => (
+          <div className="money-row" key={gi}>
+            {group.map((f) => (
+              <div className="field" key={f.key}>
+                <label htmlFor={f.key}>{f.label}</label>
+                <div className="money"><span>$</span><input id={f.key} name={f.key} type="number" min={0} step={1} inputMode="numeric" defaultValue={bank[f.key]} /></div>
+                {f.hint && <div className="muted small">{f.hint}</div>}
+              </div>
+            ))}
+          </div>
+        ))}
+        <div className="row">
+          <button type="submit">Save amounts</button>
+          <a href="/admin/bank" className="btn secondary">Cancel</a>
+        </div>
+        </form>
+      </details>
+
       <section>
         <h2>Player purse</h2>
         {rows.length === 0 ? (
@@ -79,8 +110,12 @@ export default async function BankPage({ searchParams }: { searchParams: SearchP
                 {rows.map((r) => (
                   <tr key={r.person.id}>
                     <td>
-                      {displayName(r.person)}{r.person.is_sub && <span className="muted small"> (sub)</span>}
-                      {r.weeks.length > 0 && <div className="muted small">Week{r.weeks.length > 1 ? "s" : ""} {r.weeks.join(", ")}</div>}
+                      {displayName(r.person)}
+                      {r.weeks.length > 0 && (
+                        <div className="muted small">
+                          Week{r.weeks.length > 1 ? "s" : ""} {r.weeks.map((w) => (r.subWeeks.includes(w) ? `${w}*` : `${w}`)).join(", ")}
+                        </div>
+                      )}
                     </td>
                     {split && <td className="num">{r.weeklyCents ? fmtMoney(r.weeklyCents) : "–"}</td>}
                     {showSeason && <td className="num">{r.seasonCents ? fmtMoney(r.seasonCents) : "–"}</td>}
@@ -91,6 +126,9 @@ export default async function BankPage({ searchParams }: { searchParams: SearchP
               </tbody>
             </table>
           </div>
+        )}
+        {rows.some((r) => r.subWeeks.length) && (
+          <p className="muted small">* A sub played that week. The prize goes to the league player, since subs don&rsquo;t ante.</p>
         )}
         {!seasonDone && season.length > 0 && (
           <p className="muted small">
@@ -116,7 +154,7 @@ export default async function BankPage({ searchParams }: { searchParams: SearchP
                         <span key={i}>
                           {i > 0 && ", "}
                           {displayName(byId.get(p.person_id))}
-                          {p.for_player_id != null && <span className="muted small"> (sub for {displayName(byId.get(p.for_player_id))})</span>}
+                          {p.sub_id != null && <span className="muted small">* (sub {displayName(byId.get(p.sub_id))} played)</span>}
                           {" "}{fmtMoney(p.cents)}
                         </span>
                       ))}
@@ -126,29 +164,27 @@ export default async function BankPage({ searchParams }: { searchParams: SearchP
               </tbody>
             </table>
           </div>
-          <p className="muted small" style={{ marginBottom: 0 }}>Ties split the prize evenly. If a sub played, the sub is paid. A no-show&rsquo;s partner gets the pair&rsquo;s share.</p>
+          <p className="muted small" style={{ marginBottom: 0 }}>Ties split the prize evenly. If a sub played, the league player is paid (*), since subs don&rsquo;t ante. A no-show&rsquo;s partner gets the pair&rsquo;s share.</p>
         </details>
       )}
 
-      <form action={saveBank} className="card">
-        <h2 style={{ marginTop: 0 }}>Prize amounts</h2>
-        {PRIZE_FIELDS.map((group, gi) => (
-          <div className="money-row" key={gi}>
-            {group.map((f) => (
-              <div className="field" key={f.key}>
-                <label htmlFor={f.key}>{f.label}</label>
-                <div className="money"><span>$</span><input id={f.key} name={f.key} type="number" min={0} step={1} inputMode="numeric" defaultValue={bank[f.key]} /></div>
-                {f.hint && <div className="muted small">{f.hint}</div>}
-              </div>
-            ))}
+      <details className="card edit-box">
+        <summary>
+          <div>
+            <h2>Playoff results</h2>
+            <div className="muted small">
+              {results.length === 0
+                ? "Fill this in after the tournament."
+                : PLAYOFF_PLACES.map(({ key, label }) => {
+                    const team = results.filter((r) => r.place === key).map((r) => displayName(byId.get(r.player_id)));
+                    return team.length ? `${label}: ${team.join(" & ")}` : null;
+                  }).filter(Boolean).join(" · ")}
+            </div>
           </div>
-        ))}
-        <button type="submit">Save amounts</button>
-      </form>
-
-      <form action={savePlayoffResults} className="card">
-        <h2 style={{ marginTop: 0 }}>Playoff results</h2>
-        <p className="muted small" style={{ marginTop: 0 }}>Fill this in after the tournament. Each team&rsquo;s prize is split between the two partners.</p>
+          <span className="btn secondary edit-btn">Edit</span>
+        </summary>
+        <form action={savePlayoffResults} className="edit-form">
+        <p className="muted small" style={{ marginTop: 0 }}>Each team&rsquo;s prize is split between the two partners.</p>
         {PLAYOFF_PLACES.map(({ key, label }) => (
           <div className="field" key={key}>
             <label>{label}</label>
@@ -162,8 +198,12 @@ export default async function BankPage({ searchParams }: { searchParams: SearchP
             </div>
           </div>
         ))}
-        <button type="submit">Save playoff results</button>
-      </form>
+        <div className="row">
+          <button type="submit">Save playoff results</button>
+          <a href="/admin/bank" className="btn secondary">Cancel</a>
+        </div>
+        </form>
+      </details>
     </div>
   );
 }

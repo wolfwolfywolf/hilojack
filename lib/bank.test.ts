@@ -19,7 +19,7 @@ test("splitCents hands out leftover pennies", () => {
   assert.equal(splitCents(10000, 6).reduce((a, b) => a + b), 10000);
 });
 
-test("weekly high pair splits the prize; sub who played gets the share", () => {
+test("weekly high pair splits the prize; a sub's share goes to the player they filled in for", () => {
   const ms = [
     match(1, [[1, null, 30], [2, null, 30], [3, null, 20], [4, 9, 20]]),
     match(1, [[5, null, 25], [6, null, 25], [7, null, 22], [8, null, 22]]),
@@ -29,7 +29,9 @@ test("weekly high pair splits the prize; sub who played gets the share", () => {
   assert.deepEqual(w.payees.map((p) => [p.person_id, p.cents]), [[1, 5000], [2, 5000]]);
   const ms2 = [match(2, [[1, null, 10], [2, null, 10], [3, null, 31], [4, 9, 31]])];
   const [w2] = weeklyWinners(ms2, 100);
-  assert.deepEqual(w2.payees.map((p) => [p.person_id, p.for_player_id, p.cents]), [[3, null, 5000], [9, 4, 5000]]);
+  assert.deepEqual(w2.payees.map((p) => [p.person_id, p.sub_id, p.cents]), [[3, null, 5000], [4, 9, 5000]]);
+  const rows = purse(players, [w2], null, []);
+  assert.deepEqual(rows.map((r) => [r.person.id, r.subWeeks]), [[3, []], [4, [2]]]);
 });
 
 test("tied pairs share the prize four ways", () => {

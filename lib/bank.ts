@@ -45,14 +45,18 @@ export function weekComplete(matches: MatchRow[]): boolean {
 export interface WeeklyWinner {
   week_no: number;
   score: number;
-  /** Who gets paid: the person who sat at the table (a sub, if one played), and how much in cents. */
-  payees: { person_id: number; for_player_id: number | null; cents: number }[];
+  /**
+   * Who gets paid and how much in cents. Subs didn't ante, so a sub's share goes to the league player
+   * they filled in for; sub_id is kept so the purse can mark that win with an asterisk.
+   */
+  payees: { person_id: number; sub_id: number | null; cents: number }[];
 }
 
 /**
  * The weekly high pair(s), using the raw pair score (the no-show +6 doesn't count toward the high).
  * Ties split the prize evenly between everyone in the tied pairs. A player marked no-show gets no share;
- * their partner takes the pair's share. Weeks that aren't fully scored are left out.
+ * their partner takes the pair's share. If a sub played, the regular player is paid (subs don't ante).
+ * Weeks that aren't fully scored are left out.
  */
 export function weeklyWinners(matches: MatchRow[], weeklyPrizeDollars: number): WeeklyWinner[] {
   const byWeek = new Map<number, MatchRow[]>();
@@ -61,14 +65,14 @@ export function weeklyWinners(matches: MatchRow[], weeklyPrizeDollars: number): 
   for (const [week_no, ms] of [...byWeek].sort((a, b) => a[0] - b[0])) {
     if (!weekComplete(ms)) continue;
     let best: number | null = null;
-    let seats: { person_id: number; for_player_id: number | null }[][] = [];
+    let seats: { person_id: number; sub_id: number | null }[][] = [];
     for (const m of ms)
       for (const side of ["A", "B"] as const) {
         const t = sideTotal(m, side);
         if (t == null) continue;
         const pair = m.slots
-          .filter((s) => s.side === side && !isNoShow(s) && (s.sub_id ?? s.player_id) != null)
-          .map((s) => ({ person_id: (s.sub_id ?? s.player_id)!, for_player_id: s.sub_id != null ? s.player_id : null }));
+          .filter((s) => s.side === side && !isNoShow(s) && s.player_id != null)
+          .map((s) => ({ person_id: s.player_id!, sub_id: s.sub_id }));
         if (!pair.length) continue;
         if (best == null || t > best) { best = t; seats = [pair]; }
         else if (t === best) seats.push(pair);
@@ -122,6 +126,7 @@ export function playoffPrizes(results: PlayoffResult[], bank: BankSettings): { p
 export interface PurseRow {
   person: Player;
   weeks: number[];      // weeks they shared the high-pair prize
+  subWeeks: number[];   // of those, weeks a sub played for them (shown with an asterisk)
   weeklyCents: number;
   seasonCents: number;
   playoffCents: number;
@@ -140,7 +145,7 @@ export function purse(
   const row = (id: number) => {
     let r = rows.get(id);
     if (!r && byId.has(id)) {
-      r = { person: byId.get(id)!, weeks: [], weeklyCents: 0, seasonCents: 0, playoffCents: 0, totalCents: 0 };
+      r = { person: byId.get(id)!, weeks: [], subWeeks: [], weeklyCents: 0, seasonCents: 0, playoffCents: 0, totalCents: 0 };
       rows.set(id, r);
     }
     return r;
@@ -148,7 +153,11 @@ export function purse(
   for (const w of weekly)
     for (const p of w.payees) {
       const r = row(p.person_id);
-      if (r) { r.weeklyCents += p.cents; r.weeks.push(w.week_no); }
+      if (r) {
+        r.weeklyCents += p.cents;
+        r.weeks.push(w.week_no);
+        if (p.sub_id != null) r.subWeeks.push(w.week_no);
+      }
     }
   for (const s of season ?? []) { const r = row(s.player_id); if (r) r.seasonCents += s.cents; }
   for (const p of playoffs) { const r = row(p.player_id); if (r) r.playoffCents += p.cents; }
