@@ -74,7 +74,7 @@ export default async function PlayoffsPage({ searchParams }: { searchParams: Sea
           <div className="small muted">Tournament Champions</div>
           <div className="mw-line" style={{ fontSize: "1.25rem", fontWeight: 700 }}>🏆 {champs.join(" & ")}</div>
           <div className="small" style={{ marginTop: 6 }}>
-            2nd place: {placed("2nd place").join(" & ")} · 3rd/4th place: {placed("3rd/4th place").join(", ")}
+            2nd place: {placed("2nd place").join(" & ")} · 3rd place: {placed("3rd place").join(", ")}
           </div>
         </div>
       )}

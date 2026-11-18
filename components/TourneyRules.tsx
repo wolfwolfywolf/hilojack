@@ -32,7 +32,7 @@ export function TourneyRules({ dates }: { dates: (string | null)[] }) {
         <h2>Night 3 · Rounds 6 &amp; 7</h2>
         <p className="muted small">{when(2)}</p>
         <ul>
-          <li><strong>Round 6, semifinals (top 8):</strong> 4 teams in 2 matches, partners and seats from the standings through Round 5. Winning teams go to the final. Losing teams take 3rd and 4th place.</li>
+          <li><strong>Round 6, semifinals (top 8):</strong> 4 teams in 2 matches, partners and seats from the standings through Round 5. Winning teams go to the final. Both losing teams take 3rd place.</li>
           <li><strong>Round 7, final:</strong> the same teams as in Round 6. The winner is Tournament Champion.</li>
           <li>Same scoring as Night 2: 5 games to 11 with the bonus point.</li>
         </ul>
@@ -43,7 +43,7 @@ export function TourneyRules({ dates }: { dates: (string | null)[] }) {
         <ul>
           <li>Champions: <strong>$600</strong></li>
           <li>Second place: <strong>$400</strong></li>
-          <li>3rd and 4th place: <strong>$250</strong> per team</li>
+          <li>3rd place (both semifinal losers): <strong>$250</strong> per team</li>
         </ul>
       </section>
 

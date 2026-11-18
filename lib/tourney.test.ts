@@ -105,7 +105,7 @@ test("semifinal winners make the final; the final decides champions", () => {
   const place = (id: number) => st.rows.find((r) => r.playerId === id)!.place;
   assert.equal(place(3), "Champions");
   assert.equal(place(1), "2nd place");
-  assert.equal(place(4), "3rd/4th place");
+  assert.equal(place(4), "3rd place");
   assert.equal(st.rows[0].place, "Champions");
 });
 
@@ -140,4 +140,24 @@ test("last season's Night 1 results: partners match, standings and the top 20 co
     foldedTables(st.seatOrder(4)!),
     [[1, 2, 19, 20], [3, 4, 17, 18], [5, 6, 15, 16], [7, 8, 13, 14], [9, 10, 11, 12]].map((t) => t.map(byPos)),
   );
+});
+
+test("Round 6 matches last season's sheet: 1&2 vs 7&8, 3&4 vs 5&6", () => {
+  // Players listed in standings order after Round 5 (Leite, Zabbo, Moskal, Graves, Goncalves, Michael, Petito, Fontaine).
+  const order = [3, 4, 7, 11, 16, 1, 29, 17];
+  assert.deepEqual(foldedTables(order), [[3, 4, 29, 17], [7, 11, 16, 1]]);
+});
+
+test("last season's Night 3: semifinal winners meet in the final, both semifinal losers take 3rd", () => {
+  // Season seeds: Leite 3, Zabbo 4, Moskal 7, Graves 11, Goncalves 16, Michael 1, Petito 29, Fontaine 17.
+  // Round 6 from last season's sheet; winners from the final results (Graves & Moskal champions, Fontaine & Petito 2nd).
+  const seeds = [3, 4, 7, 11, 16, 1, 29, 17];
+  const semis = [table(6, 1, [3, 4, 29, 17], 8, 12), table(6, 2, [7, 11, 16, 1], 13, 9)];
+  let st = tourneyState(seeds, semis, []);
+  assert.deepEqual(st.finalPairs, [29, 17, 7, 11]);
+  st = tourneyState(seeds, [...semis, table(7, 1, [29, 17, 7, 11], 9, 14)], []);
+  const placeOf = (id: number) => st.rows.find((r) => r.playerId === id)!.place;
+  assert.deepEqual([11, 7].map(placeOf), ["Champions", "Champions"]); // Graves, Moskal: $600
+  assert.deepEqual([17, 29].map(placeOf), ["2nd place", "2nd place"]); // Fontaine, Petito: $400
+  assert.deepEqual([3, 4, 16, 1].map(placeOf), Array(4).fill("3rd place")); // Leite, Zabbo, Goncalves, Michael: $250
 });

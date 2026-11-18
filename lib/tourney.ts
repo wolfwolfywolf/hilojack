@@ -75,8 +75,9 @@ export function earlyRoundTables(seeds: number[], round: 1 | 2 | 3): Seating[] |
 }
 
 /**
- * Round 4 tables, as the league did them last season: partners are next to each other in the standings
- * (1&2, 3&4, ...), and the top pair plays the bottom pair (1&2 vs 19&20, 3&4 vs 17&18, ... 9&10 vs 11&12).
+ * Rounds 4 and 6 tables, as the league did them last season: partners are next to each other in the standings
+ * (1&2, 3&4, ...), and the top pair plays the bottom pair (Round 4: 1&2 vs 19&20, ... 9&10 vs 11&12;
+ * Round 6: 1&2 vs 7&8, 3&4 vs 5&6).
  * Returns null when the number of players isn't a multiple of 4.
  */
 export function foldedTables(order: number[]): Seating[] | null {
@@ -103,7 +104,7 @@ export interface TourneyRow {
   outAfter: number | null;
   /** Tied at the cut line and waiting on the playoff game. */
   inTieGame: boolean;
-  place?: string; // "Champions", "2nd place", "3rd/4th place"
+  place?: string; // "Champions", "2nd place", "3rd place"
 }
 
 export interface CutState {
@@ -197,7 +198,7 @@ export function tourneyState(seeds: number[], tables: MatchRow[], tieWinners: Ti
       finalPairs = [winners[0][0], winners[0][1], winners[1][0], winners[1][1]];
       for (const t of semis) {
         const s = sides(t);
-        for (const id of s.a! > s.b! ? s.B : s.A) place.set(id, "3rd/4th place");
+        for (const id of s.a! > s.b! ? s.B : s.A) place.set(id, "3rd place");
       }
     }
   }
