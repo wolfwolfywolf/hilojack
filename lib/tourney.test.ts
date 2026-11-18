@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { earlyRoundTables, seasonSeeds, tourneyState } from "./tourney.ts";
+import { earlyRoundTables, foldedTables, seasonSeeds, tourneyState } from "./tourney.ts";
 import type { MatchRow, Player } from "./types.ts";
 
 const seeds36 = Array.from({ length: 36 }, (_, i) => i + 1); // player id = seed
@@ -133,4 +133,11 @@ test("last season's Night 1 results: partners match, standings and the top 20 co
   assert.equal(st.cuts[0].tie, null);
   assert.deepEqual(st.cuts[0].advancing, results.slice(0, 20).map(([seed]) => seed));
   assert.deepEqual(st.seatOrder(4), results.slice(0, 20).map(([seed]) => seed));
+
+  // Last season's Round 4 sheet, by Night 1 finishing position: 1&2 vs 19&20, 3&4 vs 17&18, ...
+  const byPos = (n: number) => results[n - 1][0];
+  assert.deepEqual(
+    foldedTables(st.seatOrder(4)!),
+    [[1, 2, 19, 20], [3, 4, 17, 18], [5, 6, 15, 16], [7, 8, 13, 14], [9, 10, 11, 12]].map((t) => t.map(byPos)),
+  );
 });

@@ -74,6 +74,20 @@ export function earlyRoundTables(seeds: number[], round: 1 | 2 | 3): Seating[] |
   return out;
 }
 
+/**
+ * Round 4 tables, as the league did them last season: partners are next to each other in the standings
+ * (1&2, 3&4, ...), and the top pair plays the bottom pair (1&2 vs 19&20, 3&4 vs 17&18, ... 9&10 vs 11&12).
+ * Returns null when the number of players isn't a multiple of 4.
+ */
+export function foldedTables(order: number[]): Seating[] | null {
+  if (order.length === 0 || order.length % 4 !== 0) return null;
+  const pairs = Array.from({ length: order.length / 2 }, (_, i) => [order[2 * i], order[2 * i + 1]] as const);
+  return pairs.slice(0, pairs.length / 2).map((top, i) => {
+    const bottom = pairs[pairs.length - 1 - i];
+    return [top[0], top[1], bottom[0], bottom[1]];
+  });
+}
+
 /** Every pair at every table of the round has its points in. */
 export function roundComplete(tables: MatchRow[], round: number): boolean {
   const ts = tables.filter((t) => t.week_no === round);

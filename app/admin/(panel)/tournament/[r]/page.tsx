@@ -65,7 +65,29 @@ export default async function RoundTables({ params, searchParams }: { params: Pr
         </form>
       )}
 
-      {r >= 4 && r <= 6 && (
+      {r === 4 && (
+        <form action={fillRound} className="card">
+          <input type="hidden" name="round" value={4} />
+          <p style={{ marginTop: 0 }}>
+            Seats the top 20 from the tournament standings after Round 3, the way the league did it last season: partners are
+            next to each other in the standings, and the top pair plays the bottom pair (1&amp;2 vs 19&amp;20, 3&amp;4 vs
+            17&amp;18, and so on). Ties go to the higher season seed.
+          </p>
+          {!order ? (
+            <p className="muted small" style={{ marginBottom: 0 }}>Waiting for every Round 3 score (and any tie game at 20th place).</p>
+          ) : hasScores ? (
+            <p className="muted small" style={{ marginBottom: 0 }}>This round already has scores, so move players by hand below.</p>
+          ) : ts.length > 0 ? (
+            <ConfirmButton type="submit" className="secondary" message="Replace the Round 4 tables with the seating from the standings?">
+              Fill tables again from the standings
+            </ConfirmButton>
+          ) : (
+            <button type="submit">Fill Round 4 tables from the standings</button>
+          )}
+        </form>
+      )}
+
+      {r >= 5 && r <= 6 && (
         <div className="card">
           {order ? (
             <>

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { LEAGUE_TAG, getPlayers } from "./league";
 import { loadTourney } from "./tourneyData";
-import { earlyRoundTables } from "./tourney";
+import { earlyRoundTables, foldedTables } from "./tourney";
 import { displayName } from "./standings";
 import { COOKIE, COOKIE_MAX_AGE, checkPassword, tokenFor, tokenValid, type Role } from "./auth";
 import { db } from "./db";
@@ -553,7 +553,7 @@ async function writeRound(round: number, seating: (number | null)[][]) {
   });
 }
 
-/** Rounds 1-3: seat everyone from the final season standings. Round 7: the two Round 6 winning teams. */
+/** Rounds 1-3: seat everyone from the final season standings. Round 4: from the standings after Round 3. Round 7: the two Round 6 winning teams. */
 export async function fillRound(fd: FormData) {
   await requireAdmin();
   const round = intOrNull(fd, "round") ?? 0;
@@ -565,6 +565,11 @@ export async function fillRound(fd: FormData) {
   if (round >= 1 && round <= 3) {
     seating = earlyRoundTables(seeds, round as 1 | 2 | 3);
     if (!seating) back(path, "err", `The standings have ${seeds.length} players. Filling the tables needs a number that divides by 4, so set them by hand.`);
+  } else if (round === 4) {
+    const order = state.seatOrder(4);
+    if (!order) back(path, "err", "Enter every Round 3 score first (and any tie game at 20th place).");
+    seating = foldedTables(order!);
+    if (!seating) back(path, "err", `${order!.length} players moved on. Filling the tables needs a number that divides by 4, so set them by hand.`);
   } else if (round === 7) {
     if (!state.finalPairs) back(path, "err", "Enter both Round 6 scores first. The winning teams go to the final.");
     seating = [state.finalPairs!];
@@ -574,7 +579,7 @@ export async function fillRound(fd: FormData) {
   back(path, "msg", `Round ${round} tables are set.`);
 }
 
-/** Managers place players at each table by hand (used for Rounds 4-6 until the league's pattern is known). */
+/** Managers place players at each table by hand (Rounds 5-6 until the league's pattern is known, or to move anyone). */
 export async function saveRoundSeats(fd: FormData) {
   await requireAdmin();
   const round = intOrNull(fd, "round") ?? 0;
