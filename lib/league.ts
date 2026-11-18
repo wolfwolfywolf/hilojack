@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { db } from "./db";
+import type { BankSettings, PlayoffResult } from "./bank";
 import type { MatchRow, OffDate, Player, Settings, Slot, WeekInfo } from "./types";
 
 const SLOT_ORDER: [Slot["side"], Slot["seat"]][] = [
@@ -75,6 +76,18 @@ async function getOffDatesRaw(): Promise<OffDate[]> {
     select to_char(off_date, 'YYYY-MM-DD') as off_date, reason from off_dates order by off_date`;
 }
 
+async function getBankRaw(): Promise<BankSettings> {
+  const sql = await db();
+  const [b] = await sql<BankSettings[]>`
+    select ante, weekly_prize, season_1, season_2, season_3, playoff_1, playoff_2, playoff_semi from bank where id = 1`;
+  return b;
+}
+
+async function getPlayoffResultsRaw(): Promise<PlayoffResult[]> {
+  const sql = await db();
+  return sql<PlayoffResult[]>`select place, seat, player_id from playoff_results order by place, seat`;
+}
+
 async function getLeagueRaw(weekNo?: number) {
   const [settings, players, weeks, matches, offDates] = await Promise.all([
     getSettings(),
@@ -100,3 +113,6 @@ export const getWeeks = cache(shared(getWeeksRaw, "weeks"));
 export const getMatches = cache(shared(getMatchesRaw, "matches"));
 export const getOffDates = cache(shared(getOffDatesRaw, "off-dates"));
 export const getLeague = cache(getLeagueRaw);
+// Managers' Bank page only.
+export const getBank = cache(shared(getBankRaw, "bank"));
+export const getPlayoffResults = cache(shared(getPlayoffResultsRaw, "playoff-results"));
