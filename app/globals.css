@@ -424,3 +424,21 @@ label.noshow:has(input:checked) { color: var(--err); font-weight: 700; }
 .playoffs section > p.muted { margin: 0 0 8px; }
 .playoffs section ul { margin: 0; padding-left: 1.2em; }
 .playoffs section li { margin: 4px 0; line-height: 1.45; }
+
+/* managers' Bank page */
+.bank h2 { margin: 0 0 8px; font-size: 1.15rem; }
+.bank-tiles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.bank-tiles .card { padding: 12px 14px; }
+.bank-tiles .big { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.bank-tiles .big.neg { color: var(--err); }
+.money-row { display: grid; gap: 0 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); padding-bottom: 4px; margin-bottom: 8px; border-bottom: 1px dashed var(--border); }
+.money { display: flex; align-items: center; gap: 4px; }
+.money span { color: var(--muted); font-weight: 600; }
+.bank details summary { cursor: pointer; }
+.money-row:last-of-type { border-bottom: none; }
+.edit-box > summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; }
+.edit-box > summary::-webkit-details-marker { display: none; }
+.edit-box > summary h2 { margin: 0 0 2px; }
+.edit-box[open] .edit-btn { display: none; }
+.edit-box .edit-btn { padding: 6px 16px; flex: none; }
+.edit-form { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }

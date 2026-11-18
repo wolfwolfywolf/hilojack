@@ -363,8 +363,47 @@ export async function resetSeason(fd: FormData) {
   const sql = await db();
   await sql`delete from weeks`;
   await sql`delete from off_dates`;
+  await sql`delete from playoff_results`;
   refreshAll();
   back("/admin/settings", "msg", "Schedule and scores cleared. Players were kept.");
+}
+
+// ---------- bank (managers only) ----------
+
+const BANK_FIELDS = ["ante", "weekly_prize", "season_1", "season_2", "season_3", "playoff_1", "playoff_2", "playoff_semi"] as const;
+
+export async function saveBank(fd: FormData) {
+  await requireAdmin();
+  const v: Record<string, number> = {};
+  for (const k of BANK_FIELDS) {
+    const raw = str(fd, k).replace(/[$,\s]/g, "");
+    const n = raw === "" ? 0 : Number(raw);
+    if (!Number.isInteger(n) || n < 0 || n > 100000) back("/admin/bank", "err", "Amounts must be whole dollars, like 125.");
+    v[k] = n;
+  }
+  const sql = await db();
+  await sql`update bank set ${sql(v, ...BANK_FIELDS)} where id = 1`;
+  refreshAll();
+  back("/admin/bank", "msg", "Prize amounts saved.");
+}
+
+export async function savePlayoffResults(fd: FormData) {
+  await requireAdmin();
+  const rows: { place: string; seat: number; player_id: number }[] = [];
+  for (const place of ["first", "second", "semi_a", "semi_b"])
+    for (const seat of [1, 2]) {
+      const id = intOrNull(fd, `${place}_${seat}`);
+      if (id != null) rows.push({ place, seat, player_id: id });
+    }
+  const ids = rows.map((r) => r.player_id);
+  if (new Set(ids).size !== ids.length) back("/admin/bank", "err", "A player is listed in two places. Each player can finish in only one.");
+  const sql = await db();
+  await sql.begin(async (tx) => {
+    await tx`delete from playoff_results`;
+    if (rows.length) await tx`insert into playoff_results ${tx(rows, "place", "seat", "player_id")}`;
+  });
+  refreshAll();
+  back("/admin/bank", "msg", "Playoff results saved.");
 }
 
 // ---------- "this is me" (per device, no login) ----------

@@ -71,6 +71,28 @@ create table if not exists player_photos (
 -- Managers' switch: show player photos to league members (off = only managers see them).
 alter table settings add column if not exists show_photos boolean not null default false;
 
+-- League bank (managers only): prize amounts in whole dollars. One row, kept when a season is cleared.
+create table if not exists bank (
+  id            int primary key default 1 check (id = 1),
+  ante          int not null default 125 check (ante >= 0),
+  weekly_prize  int not null default 100 check (weekly_prize >= 0),
+  season_1      int not null default 0 check (season_1 >= 0),
+  season_2      int not null default 0 check (season_2 >= 0),
+  season_3      int not null default 0 check (season_3 >= 0),
+  playoff_1     int not null default 0 check (playoff_1 >= 0),
+  playoff_2     int not null default 0 check (playoff_2 >= 0),
+  playoff_semi  int not null default 0 check (playoff_semi >= 0)  -- each of the two semifinal losing teams
+);
+insert into bank (id) values (1) on conflict do nothing;
+
+-- Playoff finishing teams, for the player purse. Two players per place.
+create table if not exists playoff_results (
+  place     text not null check (place in ('first', 'second', 'semi_a', 'semi_b')),
+  seat      int not null check (seat in (1, 2)),
+  player_id int not null references players(id) on delete cascade,
+  primary key (place, seat)
+);
+
 -- Lock the tables away from Supabase's public API (anon/authenticated keys).
 -- The app connects as the table owner, which RLS does not restrict.
 alter table settings    enable row level security;
@@ -80,4 +102,6 @@ alter table matches     enable row level security;
 alter table match_slots enable row level security;
 alter table off_dates   enable row level security;
 alter table player_photos enable row level security;
+alter table bank        enable row level security;
+alter table playoff_results enable row level security;
 `;
