@@ -30,6 +30,12 @@ export default async function ScheduleAdmin({ searchParams }: { searchParams: Se
       )}
 
       {weeks.length > 0 && (
+        <p className="row">
+          <Link href="/admin/print/season" className="btn secondary">Print score sheets for the whole season</Link>
+        </p>
+      )}
+
+      {weeks.length > 0 && (
         <div className="table-scroll card" style={{ padding: 0 }}>
           <table>
             <thead>
@@ -51,7 +57,7 @@ export default async function ScheduleAdmin({ searchParams }: { searchParams: Se
                     <td className="num">{ms.length}</td>
                     <td className="num">{scored === seats.length && seats.length > 0 ? "✓ all" : `${scored}/${seats.length}`}</td>
                     <td className="num">{subs || ""}</td>
-                    <td><Link href={`/admin/week/${w.week_no}/scores`}>Enter scores</Link> · <Link href={`/admin/week/${w.week_no}`}>Edit week</Link></td>
+                    <td><Link href={`/admin/week/${w.week_no}/scores`}>Enter scores</Link> · <Link href={`/admin/week/${w.week_no}`}>Edit week</Link> · <Link href={`/admin/print/${w.week_no}`}>Print sheets</Link></td>
                   </tr>
                 );
               })}

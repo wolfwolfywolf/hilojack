@@ -442,3 +442,54 @@ label.noshow:has(input:checked) { color: var(--err); font-weight: 700; }
 .edit-box[open] .edit-btn { display: none; }
 .edit-box .edit-btn { padding: 6px 16px; flex: none; }
 .edit-form { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+/* ---------- Printable score sheets (/admin/print/N) ---------- */
+@page { size: letter landscape; margin: 0.35in; }
+.ss-page { background: #e9ece9; min-height: 100vh; padding: 16px 0 40px; color: #000; }
+.ss-toolbar { max-width: 10.3in; margin: 0 auto 16px; padding: 0 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+.ss-toolbar button { margin-left: auto; }
+.ss-sheet {
+  position: relative;
+  width: 10.3in; height: 7.8in; margin: 0 auto 24px; padding: 0.3in 0.35in 0.25in;
+  background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.2);
+  display: flex; flex-direction: column; gap: 0.12in;
+  font: 11px/1.2 Arial, Helvetica, sans-serif; color: #000;
+}
+.ss-corner { text-align: right; font-size: 10px; color: #444; margin-bottom: -0.06in; }
+.ss-sheet th, .ss-sheet td { background: none; color: #000; text-transform: none; letter-spacing: normal; padding: 0 1px; text-align: center; vertical-align: middle; white-space: nowrap; overflow: hidden; }
+.ss-head { display: flex; gap: 0.25in; align-items: flex-end; }
+.ss-field { display: flex; align-items: flex-end; gap: 6px; }
+.ss-team { flex: 1; min-width: 0; }
+.ss-date { width: 1.9in; }
+.ss-label { font-weight: 700; white-space: nowrap; }
+.ss-line { flex: 1; border-bottom: 1px solid #000; font-size: 15px; padding: 0 4px 1px; white-space: nowrap; overflow: hidden; }
+.ss-line small { font-size: 10px; }
+.ss-games { display: flex; gap: 0.12in; }
+.ss-games > * { flex: 1; }
+.ss-grid { flex: 1; min-height: 0; }
+.ss-grid .ss-game { height: 100%; }
+.ss-game { border-collapse: collapse; table-layout: fixed; width: 100%; flex: 1; }
+.ss-game th, .ss-game td { border: 1px solid #000; }
+.ss-game th { font-size: 10px; font-weight: 700; height: 0.2in; }
+.ss-game td { height: 0.26in; }
+.ss-game .ss-bump { width: 0.2in; padding: 0; }
+.ss-game .ss-bump span { writing-mode: vertical-rl; text-orientation: upright; font-size: 7px; letter-spacing: -1px; }
+.ss-game thead tr:first-child th { border-width: 1.5px; }
+.ss-sum-title { text-align: center; font-weight: 700; font-size: 9px; text-transform: uppercase; margin-bottom: 1px; }
+.ss-sum table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ss-sum th, .ss-sum td { border: 1px solid #000; }
+.ss-sum th { font-size: 8px; height: 0.18in; }
+.ss-sum td { height: 0.3in; }
+.ss-sum .ss-side { width: 0.38in; font-size: 9px; }
+.ss-sum:not(:first-child) .ss-side { display: none; }
+.ss-foot { display: flex; justify-content: space-between; gap: 0.4in; margin-top: 0.06in; }
+.ss-foot-side { display: flex; align-items: flex-end; gap: 6px; }
+.ss-blank { display: inline-block; width: 0.7in; border-bottom: 1px solid #000; margin-right: 0.15in; }
+
+@media print {
+  body { background: #fff; }
+  .ss-page { background: #fff; padding: 0; min-height: 0; }
+  .ss-toolbar, .nav-progress { display: none !important; }
+  .ss-sheet { box-shadow: none; margin: 0; padding: 0; width: 100%; height: 7.75in; break-after: page; page-break-after: always; }
+  .ss-sheet:last-child { break-after: auto; page-break-after: auto; }
+}
