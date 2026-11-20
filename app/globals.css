@@ -444,6 +444,7 @@ label.noshow:has(input:checked) { color: var(--err); font-weight: 700; }
 .edit-form { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
 
 /* ---------- Printable score sheets (/admin/print/N) ---------- */
+/* "Us" is shaded light gray everywhere on the sheet (header, column, summary row, points) so it's never mixed up with "Them". */
 @page { size: letter landscape; margin: 0.35in; }
 .ss-page { background: #e9ece9; min-height: 100vh; padding: 16px 0 40px; color: #000; }
 .ss-toolbar { max-width: 10.3in; margin: 0 auto 16px; padding: 0 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
@@ -455,6 +456,12 @@ label.noshow:has(input:checked) { color: var(--err); font-weight: 700; }
   display: flex; flex-direction: column; gap: 0.12in;
   font: 11px/1.2 Arial, Helvetica, sans-serif; color: #000;
 }
+.ss-sheet .ss-us { background: #d9d9d9; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ss-sheet .ss-colhead { height: auto; padding: 2px 1px; line-height: 1.1; white-space: normal; }
+.ss-colhead b { display: block; font-size: 11px; }
+.ss-colhead span { display: block; font-size: 9px; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ss-team.ss-us { padding: 2px 6px; border-radius: 3px; }
+.ss-foot-side.ss-us { padding: 3px 6px; border-radius: 3px; }
 .ss-corner { text-align: right; font-size: 10px; color: #444; margin-bottom: -0.06in; }
 .ss-sheet th, .ss-sheet td { background: none; color: #000; text-transform: none; letter-spacing: normal; padding: 0 1px; text-align: center; vertical-align: middle; white-space: nowrap; overflow: hidden; }
 .ss-head { display: flex; gap: 0.25in; align-items: flex-end; }

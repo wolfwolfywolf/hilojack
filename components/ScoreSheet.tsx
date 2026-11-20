@@ -13,10 +13,18 @@ function seatName(s: Slot | undefined, byId: Map<number, Player>) {
   return { name: regular ? displayName(regular) : "", note: "" };
 }
 
-function Team({ label, slots, byId }: { label: string; slots: Slot[]; byId: Map<number, Player> }) {
+/** Last names of whoever is sitting at the seats (subs in place of regulars), for the column headings. */
+function lastNames(slots: Slot[], byId: Map<number, Player>): string[] {
+  return slots
+    .map((s) => (s.sub_id ?? s.player_id))
+    .map((id) => (id != null ? byId.get(id)?.last_name ?? "" : ""))
+    .filter(Boolean);
+}
+
+function Team({ label, slots, byId, us }: { label: string; slots: Slot[]; byId: Map<number, Player>; us?: boolean }) {
   const [a, b] = slots.map((s) => seatName(s, byId));
   return (
-    <div className="ss-field ss-team">
+    <div className={`ss-field ss-team${us ? " ss-us" : ""}`}>
       <span className="ss-label">{label}:</span>
       <span className="ss-line">
         {a?.name}
@@ -30,11 +38,13 @@ function Team({ label, slots, byId }: { label: string; slots: Slot[]; byId: Map<
 }
 
 export function Sheet({ table, week, date, us, them, byId }: { table: number | null; week: number; date: string; us: Slot[]; them: Slot[]; byId: Map<number, Player> }) {
+  const usNames = lastNames(us, byId);
+  const themNames = lastNames(them, byId);
   return (
     <section className="ss-sheet">
       <div className="ss-corner">{table != null ? `Week ${week} · Table ${table}` : `Week ${week}`}</div>
       <div className="ss-head">
-        <Team label="Team Us" slots={us} byId={byId} />
+        <Team label="Team Us" slots={us} byId={byId} us />
         <Team label="Team Them" slots={them} byId={byId} />
         <div className="ss-field ss-date">
           <span className="ss-label">Date:</span>
@@ -47,18 +57,24 @@ export function Sheet({ table, week, date, us, them, byId }: { table: number | n
           <table key={g} className="ss-game">
             <thead>
               <tr>
-                <th rowSpan={2} className="ss-bump"><span>Bump</span></th>
+                <th rowSpan={2} className="ss-bump ss-us"><span>Bump</span></th>
                 <th colSpan={2}>Game {g}</th>
                 <th rowSpan={2} className="ss-bump"><span>Bump</span></th>
               </tr>
               <tr>
-                <th>Us</th>
-                <th>Them</th>
+                <th className="ss-us ss-colhead">
+                  <b>US</b>
+                  {usNames.map((n) => <span key={n}>{n}</span>)}
+                </th>
+                <th className="ss-colhead">
+                  <b>THEM</b>
+                  {themNames.map((n) => <span key={n}>{n}</span>)}
+                </th>
               </tr>
             </thead>
             <tbody>
               {Array.from({ length: ROWS }, (_, i) => (
-                <tr key={i}><td /><td /><td /><td /></tr>
+                <tr key={i}><td className="ss-us" /><td className="ss-us" /><td /><td /></tr>
               ))}
             </tbody>
           </table>
@@ -74,7 +90,7 @@ export function Sheet({ table, week, date, us, them, byId }: { table: number | n
                 <tr><th className="ss-side" /><th>Game</th><th>Hole</th><th>Bumps</th><th>Total</th></tr>
               </thead>
               <tbody>
-                <tr><th className="ss-side">Us</th><td /><td /><td /><td /></tr>
+                <tr className="ss-us"><th className="ss-side">Us</th><td /><td /><td /><td /></tr>
                 <tr><th className="ss-side">Them</th><td /><td /><td /><td /></tr>
               </tbody>
             </table>
@@ -83,7 +99,7 @@ export function Sheet({ table, week, date, us, them, byId }: { table: number | n
       </div>
 
       <div className="ss-foot">
-        <div className="ss-foot-side">
+        <div className="ss-foot-side ss-us">
           <span className="ss-label">Team Us Points:</span><span className="ss-blank" />
           <span className="ss-label">Bonus:</span><span className="ss-blank" />
           <span className="ss-label">Total:</span><span className="ss-blank" />
