@@ -55,7 +55,10 @@ export default async function WeekAdmin({
         Tick No-show for a player who didn&apos;t show or left early: they get −2, their partner gets the pair&apos;s points +3,
         and the opponents get their points +6. If someone left early, type the pair&apos;s points so far.
       </p>
-      <p><Link href={`/admin/week/${n}/scores`} className="btn">Enter scores one table at a time</Link></p>
+      <p className="row">
+        <Link href={`/admin/week/${n}/scores`} className="btn">Enter scores one table at a time</Link>
+        <Link href={`/admin/print/${n}`} className="btn secondary">Print score sheets</Link>
+      </p>
       <Flash msg={one(sp.msg)} err={one(sp.err)} />
       {doubled.length > 0 && <p className="warn">Scheduled more than once: {doubled.join(", ")}</p>}
       {missing.length > 0 && <p className="warn">Not scheduled this week: {missing.join(", ")}</p>}
