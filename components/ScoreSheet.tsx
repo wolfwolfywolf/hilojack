@@ -21,11 +21,11 @@ function lastNames(slots: Slot[], byId: Map<number, Player>): string[] {
     .filter(Boolean);
 }
 
-function Team({ label, slots, byId, us }: { label: string; slots: Slot[]; byId: Map<number, Player>; us?: boolean }) {
+/** One pair's names across the top of the sheet. Pair A is shaded so the two pairs are easy to tell apart. */
+function Team({ slots, byId, shaded }: { slots: Slot[]; byId: Map<number, Player>; shaded?: boolean }) {
   const [a, b] = slots.map((s) => seatName(s, byId));
   return (
-    <div className={`ss-field ss-team${us ? " ss-us" : ""}`}>
-      <span className="ss-label">{label}:</span>
+    <div className={`ss-field ss-team${shaded ? " ss-a" : ""}`}>
       <span className="ss-line">
         {a?.name}
         {a?.note && <small> ({a.note})</small>}
@@ -37,15 +37,22 @@ function Team({ label, slots, byId, us }: { label: string; slots: Slot[]; byId: 
   );
 }
 
+/** Stacked last names, used as a column or row heading. Empty on a blank sheet (room to write them in). */
+function Names({ names }: { names: string[] }) {
+  return <>{names.map((n, i) => <span key={i}>{n}</span>)}</>;
+}
+
 export function Sheet({ table, week, date, us, them, byId }: { table: number | null; week: number; date: string; us: Slot[]; them: Slot[]; byId: Map<number, Player> }) {
-  const usNames = lastNames(us, byId);
-  const themNames = lastNames(them, byId);
+  const aNames = lastNames(us, byId);
+  const bNames = lastNames(them, byId);
+  const points = (names: string[]) => (names.length ? `${names.join(" / ")} points:` : "Points:");
   return (
     <section className="ss-sheet">
       <div className="ss-corner">{table != null ? `Week ${week} · Table ${table}` : `Week ${week}`}</div>
       <div className="ss-head">
-        <Team label="Team Us" slots={us} byId={byId} us />
-        <Team label="Team Them" slots={them} byId={byId} />
+        <Team slots={us} byId={byId} shaded />
+        <span className="ss-vs">vs</span>
+        <Team slots={them} byId={byId} />
         <div className="ss-field ss-date">
           <span className="ss-label">Date:</span>
           <span className="ss-line">{date}</span>
@@ -57,24 +64,18 @@ export function Sheet({ table, week, date, us, them, byId }: { table: number | n
           <table key={g} className="ss-game">
             <thead>
               <tr>
-                <th rowSpan={2} className="ss-bump ss-us"><span>Bump</span></th>
+                <th rowSpan={2} className="ss-bump ss-a"><span>Bump</span></th>
                 <th colSpan={2}>Game {g}</th>
                 <th rowSpan={2} className="ss-bump"><span>Bump</span></th>
               </tr>
               <tr>
-                <th className="ss-us ss-colhead">
-                  <b>US</b>
-                  {usNames.map((n) => <span key={n}>{n}</span>)}
-                </th>
-                <th className="ss-colhead">
-                  <b>THEM</b>
-                  {themNames.map((n) => <span key={n}>{n}</span>)}
-                </th>
+                <th className="ss-a ss-colhead"><Names names={aNames} /></th>
+                <th className="ss-colhead"><Names names={bNames} /></th>
               </tr>
             </thead>
             <tbody>
               {Array.from({ length: ROWS }, (_, i) => (
-                <tr key={i}><td className="ss-us" /><td className="ss-us" /><td /><td /></tr>
+                <tr key={i}><td className="ss-a" /><td className="ss-a" /><td /><td /></tr>
               ))}
             </tbody>
           </table>
@@ -90,8 +91,8 @@ export function Sheet({ table, week, date, us, them, byId }: { table: number | n
                 <tr><th className="ss-side" /><th>Game</th><th>Hole</th><th>Bumps</th><th>Total</th></tr>
               </thead>
               <tbody>
-                <tr className="ss-us"><th className="ss-side">Us</th><td /><td /><td /><td /></tr>
-                <tr><th className="ss-side">Them</th><td /><td /><td /><td /></tr>
+                <tr className="ss-a"><th className="ss-side"><Names names={aNames} /></th><td /><td /><td /><td /></tr>
+                <tr><th className="ss-side"><Names names={bNames} /></th><td /><td /><td /><td /></tr>
               </tbody>
             </table>
           </div>
@@ -99,13 +100,13 @@ export function Sheet({ table, week, date, us, them, byId }: { table: number | n
       </div>
 
       <div className="ss-foot">
-        <div className="ss-foot-side ss-us">
-          <span className="ss-label">Team Us Points:</span><span className="ss-blank" />
+        <div className="ss-foot-side ss-a">
+          <span className="ss-label">{points(aNames)}</span><span className="ss-blank" />
           <span className="ss-label">Bonus:</span><span className="ss-blank" />
           <span className="ss-label">Total:</span><span className="ss-blank" />
         </div>
         <div className="ss-foot-side">
-          <span className="ss-label">Team Them Points:</span><span className="ss-blank" />
+          <span className="ss-label">{points(bNames)}</span><span className="ss-blank" />
           <span className="ss-label">Bonus:</span><span className="ss-blank" />
           <span className="ss-label">Total:</span><span className="ss-blank" />
         </div>
